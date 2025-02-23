@@ -5,7 +5,7 @@ from datetime import datetime
 from pythonosc import udp_client
 
 # OSC配置
-OSC_Enable = False #开关True/False
+OSC_Enable = True #开关True/False
 OSC_ADDRESS = "127.0.0.1"
 OSC_PORT = 9000
 
