@@ -6,10 +6,10 @@
 
 开局提前知道哪位Slasher，有OSC功能，可搭配改模，在模型中显示。
 
-# 启用OSC
-右键编辑，第八行，False改True
+# 关闭OSC
+右键编辑，第八行，True改False
 ```
-OSC_Enable = True
+OSC_Enable = False
 OSC_ADDRESS = "127.0.0.1"
 OSC_PORT = 9000
 ```
