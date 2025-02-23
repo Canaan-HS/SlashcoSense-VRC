@@ -5,3 +5,17 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 开局提前知道哪位Slasher，有OSC功能，可搭配改模，在模型中显示。
+
+# 启用OSC
+右键编辑，第八行，False改True
+```
+OSC_Enable = True
+OSC_ADDRESS = "127.0.0.1"
+OSC_PORT = 9000
+```
+
+# 启动脚本
+cmd
+```
+python SlasherSense.py
+```
