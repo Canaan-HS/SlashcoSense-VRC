@@ -8,17 +8,3 @@
 
 [exe版本下载](https://github.com/arcxingye/SlasherSense-VRC/releases/download/exe/SlasherSense.exe)
 [配套改模包下载](https://github.com/arcxingye/SlasherSense-VRC/releases/download/exe/SlasherSense.unitypackage)
-
-# 关闭OSC
-右键编辑，第八行，True改False
-```
-OSC_Enable = False
-OSC_ADDRESS = "127.0.0.1"
-OSC_PORT = 9000
-```
-
-# 启动脚本
-cmd
-```
-python SlasherSense.py
-```
