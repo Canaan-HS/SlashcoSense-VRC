@@ -4,11 +4,7 @@ import re
 from datetime import datetime
 from pythonosc import udp_client
 
-# OSC Config
-OSC_Enable = True #True/False
-OSC_ADDRESS = "127.0.0.1"
-OSC_PORT = 9000
-
+DEFAULT_PORT = 9000
 
 PLAYED_MAP = {
     0: "SlashCoHQ",
@@ -70,17 +66,60 @@ def parse_log_line(line):
     
     return result
 
-def send_slasher_osc(slasher_id):
-    try:
-        client = udp_client.SimpleUDPClient(OSC_ADDRESS, OSC_PORT)
-        client.send_message("/avatar/parameters/SlasherID", slasher_id)
-    except Exception as e:
-        print(f"[OSC Error] {datetime.now().strftime('%H:%M:%S')} - {str(e)}")
+def get_user_config():
+    """获取用户配置"""
+    config = {"enable_osc": False, "osc_port": DEFAULT_PORT}
+    
+    # OSC启用询问
+    while True:
+        osc_choice = input("Enable OSC output? (Y/n): ").strip().lower()
+        if osc_choice in ['y', '']:
+            config["enable_osc"] = True
+            break
+        elif osc_choice == 'n':
+            config["enable_osc"] = False
+            break
+        print("Invalid input, please enter Y/n")
+    
+    # 如果启用OSC则获取端口
+    if config["enable_osc"]:
+        while True:
+            port_input = input(f"Enter OSC port [default {DEFAULT_PORT}]: ").strip()
+            if not port_input:
+                config["osc_port"] = DEFAULT_PORT
+                break
+            try:
+                port = int(port_input)
+                if 1 <= port <= 65535:
+                    config["osc_port"] = port
+                    break
+                print("Port must be between 1-65535")
+            except ValueError:
+                print("Invalid port number")
+    
+    return config
 
-def monitor_logs():
+def init_osc_client(port):
+    """初始化OSC客户端"""
+    try:
+        return udp_client.SimpleUDPClient("127.0.0.1", port)
+    except Exception as e:
+        print(f"[OSC] Initialization failed: {str(e)}")
+        return None
+
+def monitor_logs(config):
+    """主监控函数"""
     log_dir = os.path.expandvars(r'%USERPROFILE%\AppData\LocalLow\VRChat\VRChat')
+    osc_client = init_osc_client(config["osc_port"]) if config["enable_osc"] else None
+    
     current_file = None
     file_pos = 0
+    
+    print("\n[System] Starting monitoring...")
+    if osc_client:
+        print(f"[OSC] Ready on port {config['osc_port']}")
+    else:
+        print("[OSC] Output disabled")
     
     while True:
         latest = get_latest_log_file(log_dir)
@@ -123,15 +162,19 @@ def monitor_logs():
                     if output:
                         print(f"[{datetime.now().strftime('%H:%M:%S')}] {' | '.join(output)}")
                     
-                    if OSC_Enable:
-                      if 'slasher' in data:
-                          send_slasher_osc(data['slasher']['id'])
+                    # OSC发送逻辑
+                    if osc_client and 'slasher' in data:
+                        try:
+                            osc_client.send_message("/avatar/parameters/SlasherID", data['slasher']['id'])
+                            print(f"[OSC] Sent ID:{data['slasher']['id']}")
+                        except Exception as e:
+                            print(f"[OSC Error] {str(e)}")
                         
         except Exception as e:
             print(f"[Error] {datetime.now().strftime('%H:%M:%S')} - {str(e)}")
             time.sleep(1)
 
 if __name__ == "__main__":
-    if OSC_Enable :
-        print(f"=== OSC SlashCo Monitor {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ===")
-    monitor_logs()
+    print("=== SlasherSense By:arcxingye ===")
+    user_config = get_user_config()
+    monitor_logs(user_config)
