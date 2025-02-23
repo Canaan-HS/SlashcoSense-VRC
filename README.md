@@ -6,6 +6,8 @@
 
 开局提前知道哪位Slasher，有OSC功能，可搭配改模，在模型中显示。
 
+[exe版本下载](https://github.com/arcxingye/SlasherSense-VRC/releases/download/exe/SlasherSense.exe)
+
 # 关闭OSC
 右键编辑，第八行，True改False
 ```
