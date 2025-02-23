@@ -8,3 +8,8 @@
 
 [exe版本下载](https://github.com/arcxingye/SlasherSense-VRC/releases/download/exe/SlasherSense.exe)
 [配套改模包下载](https://github.com/arcxingye/SlasherSense-VRC/releases/download/exe/SlasherSense.unitypackage)
+
+模型参数(Int)
+```
+SlasherID
+```
