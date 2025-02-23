@@ -4,8 +4,8 @@ import re
 from datetime import datetime
 from pythonosc import udp_client
 
-# OSC配置
-OSC_Enable = True #开关True/False
+# OSC Config
+OSC_Enable = True #True/False
 OSC_ADDRESS = "127.0.0.1"
 OSC_PORT = 9000
 
@@ -51,13 +51,11 @@ def get_latest_log_file(log_dir):
 def parse_log_line(line):
     result = {}
     
-    # 解析地图
     map_match = re.search(r"Played Map:\s*([^,]+)", line)
     if map_match:
         map_val = map_match.group(1).strip()
         result["map"] = PLAYED_MAP.get(int(map_val), map_val) if map_val.isdigit() else map_val
     
-    # 解析杀手
     slasher_match = re.search(r"Slasher:\s*(\d+)", line)
     if slasher_match:
         slasher_id = int(slasher_match.group(1))
@@ -66,7 +64,6 @@ def parse_log_line(line):
             "name": SLASHER_MAP.get(slasher_id, f"Unknown({slasher_id})")
         }
     
-    # 解析物品
     items_match = re.search(r"Selected Items:\s*(.+?)(?=,\s*\w+:|$)", line)
     if items_match:
         result["items"] = items_match.group(1).strip()
@@ -116,7 +113,6 @@ def monitor_logs():
                     data = parse_log_line(cleaned)
                     output = []
                     
-                    # 控制台显示所有字段
                     if 'map' in data:
                         output.append(f"Map: {data['map']}")
                     if 'slasher' in data:
@@ -127,7 +123,6 @@ def monitor_logs():
                     if output:
                         print(f"[{datetime.now().strftime('%H:%M:%S')}] {' | '.join(output)}")
                     
-                    # 仅通过OSC发送杀手ID
                     if OSC_Enable:
                       if 'slasher' in data:
                           send_slasher_osc(data['slasher']['id'])
