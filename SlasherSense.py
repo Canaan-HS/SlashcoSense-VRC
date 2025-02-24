@@ -64,13 +64,22 @@ def parse_log_line(line):
     if items_match:
         result["items"] = items_match.group(1).strip()
     
+    generator_pattern = r"SC_(generator\d+) Progress check\. Last (\w+) value: (.*?), updated (\w+) value: (.*)"
+    if "Progress check" in line:
+        gen_match = re.search(generator_pattern, line)
+        if gen_match:
+            result["generator"] = {
+                "name": gen_match.group(1),
+                "var_name": gen_match.group(2),
+                "old_value": gen_match.group(3),
+                "new_value": gen_match.group(5)
+            }
+    
     return result
 
 def get_user_config():
-    """获取用户配置"""
     config = {"enable_osc": False, "osc_port": DEFAULT_PORT}
     
-    # OSC启用询问
     while True:
         osc_choice = input("Enable OSC output? (Y/n): ").strip().lower()
         if osc_choice in ['y', '']:
@@ -81,7 +90,6 @@ def get_user_config():
             break
         print("Invalid input, please enter Y/n")
     
-    # 如果启用OSC则获取端口
     if config["enable_osc"]:
         while True:
             port_input = input(f"Enter OSC port [default {DEFAULT_PORT}]: ").strip()
@@ -100,7 +108,6 @@ def get_user_config():
     return config
 
 def init_osc_client(port):
-    """初始化OSC客户端"""
     try:
         return udp_client.SimpleUDPClient("127.0.0.1", port)
     except Exception as e:
@@ -108,7 +115,6 @@ def init_osc_client(port):
         return None
 
 def monitor_logs(config):
-    """主监控函数"""
     log_dir = os.path.expandvars(r'%USERPROFILE%\AppData\LocalLow\VRChat\VRChat')
     osc_client = init_osc_client(config["osc_port"]) if config["enable_osc"] else None
     
@@ -146,23 +152,29 @@ def monitor_logs(config):
                 
                 for line in lines:
                     cleaned = line.strip()
-                    if not any(k in cleaned for k in ["Played Map:", "Slasher:", "Selected Items:"]):
-                        continue
+                    outputs = []
                     
                     data = parse_log_line(cleaned)
-                    output = []
                     
-                    if 'map' in data:
-                        output.append(f"Map: {data['map']}")
-                    if 'slasher' in data:
-                        output.append(f"Slasher: {data['slasher']['name']}")
-                    if 'items' in data:
-                        output.append(f"Items: {data['items']}")
+                    if "Received Serializable Values" in cleaned:
+                        if 'map' in data:
+                            outputs.append(f"Map: {data['map']}")
+                        if 'slasher' in data:
+                            outputs.append(f"Slasher: {data['slasher']['name']}")
+                        if 'items' in data:
+                            outputs.append(f"Items: {data['items']}")
                     
-                    if output:
-                        print(f"[{datetime.now().strftime('%H:%M:%S')}] {' | '.join(output)}")
+                    if 'generator' in data:
+                        gen = data['generator']
+                        outputs.append(
+                            f"{gen['name']} - {gen['var_name']} "
+                            f"changed: {gen['old_value']} → {gen['new_value']}"
+                        )
                     
-                    # OSC发送逻辑
+                    if outputs:
+                        timestamp = datetime.now().strftime('%H:%M:%S')
+                        print(f"[{timestamp}] " + " | ".join(outputs))
+
                     if osc_client and 'slasher' in data:
                         try:
                             osc_client.send_message("/avatar/parameters/SlasherID", data['slasher']['id'])
