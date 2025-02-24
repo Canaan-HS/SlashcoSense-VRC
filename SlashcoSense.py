@@ -56,7 +56,7 @@ def parse_log_line(line):
 class VRChatMonitorGUI:
     def __init__(self, master):
         self.master = master
-        master.title("SlashcoSense中文UI版")
+        master.title("SlashcoSense By:arcxingye")
         master.geometry("800x600")
         
         # 游戏状态面板
