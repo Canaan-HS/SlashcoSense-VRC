@@ -5,8 +5,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 功能：
+
 1.开局知晓地图、Slasher、生成的物品信息
+
 2.实时刷新发电机所需的油和电数量(仅限多人游戏)
+
 3.OSC功能，可以用于将信息显示到模型上。
 
 [exe版本下载](https://github.com/arcxingye/SlasherSense-VRC/releases/download/exe/SlashcoSense.exe)
