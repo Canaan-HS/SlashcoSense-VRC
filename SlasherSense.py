@@ -170,6 +170,25 @@ def monitor_logs(config):
                             f"{gen['name']} - {gen['var_name']} "
                             f"changed: {gen['old_value']} → {gen['new_value']}"
                         )
+                        if osc_client:
+                            try:
+                                gen_name = gen['name'].upper()
+                                var_type = gen['var_name']
+                                
+                                param_name = ""
+                                if var_type == "REMAINING":
+                                    param_name = f"{gen_name}_FUEL"
+                                    value = int(gen['new_value'])
+                                elif var_type == "HAS_BATTERY":
+                                    param_name = f"{gen_name}_BATTERY"
+                                    value = 1 if gen['new_value'].lower() == "true" else 0
+                                
+                                osc_address = f"/avatar/parameters/{param_name}"
+                                osc_client.send_message(osc_address, value)
+                                print(f"[OSC] Sent {param_name}: {value}")
+                                
+                            except Exception as e:
+                                print(f"[OSC Error] {gen['name']} {var_type}: {str(e)}")
                     
                     if outputs:
                         timestamp = datetime.now().strftime('%H:%M:%S')
@@ -178,7 +197,7 @@ def monitor_logs(config):
                     if osc_client and 'slasher' in data:
                         try:
                             osc_client.send_message("/avatar/parameters/SlasherID", data['slasher']['id'])
-                            print(f"[OSC] Sent ID:{data['slasher']['id']}")
+                            print(f"[OSC] Sent SlasherID:{data['slasher']['id']}")
                         except Exception as e:
                             print(f"[OSC Error] {str(e)}")
                         
