@@ -155,8 +155,8 @@ def monitor_logs(config):
                     outputs = []
                     
                     data = parse_log_line(cleaned)
-                    
-                    if "Received Serializable Values" in cleaned:
+
+                    if any(k in cleaned for k in ["Played Map:", "Slasher:", "Selected Items:"]):
                         if 'map' in data:
                             outputs.append(f"Map: {data['map']}")
                         if 'slasher' in data:
