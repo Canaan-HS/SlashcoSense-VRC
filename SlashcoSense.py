@@ -1,0 +1,211 @@
+import os
+import time
+import re
+from datetime import datetime
+from pythonosc import udp_client
+
+DEFAULT_PORT = 9000
+
+PLAYED_MAP = {
+    0: "SlashCoHQ",
+    1: "MalonesFarmyard",
+    2: "PhilipsWestwoodHighSchool",
+    3: "EastwoodGeneralHospital",
+    4: "ResearchFacilityDelta"
+}
+
+SLASHER_MAP = {
+    0: "Bababooey",
+    1: "Sid",
+    2: "Trollge",
+    3: "Borgmire",
+    4: "Abomignat",
+    5: "Thirsty",
+    6: "Elmo",
+    7: "Watcher",
+    8: "Beast",
+    9: "Dolphinman",
+    10: "Igor",
+    11: "Grouch",
+    12: "Princess",
+    13: "Speedrunner"
+}
+
+def get_latest_log_file(log_dir):
+    try:
+        if not os.path.isdir(log_dir):
+            return None
+        log_files = [
+            os.path.join(log_dir, f) for f in os.listdir(log_dir)
+            if f.startswith('output_log_') and f.endswith('.txt')
+        ]
+        return max(log_files, key=os.path.getmtime) if log_files else None
+    except Exception as e:
+        print(f"Error finding logs: {e}")
+        return None
+
+def parse_log_line(line):
+    result = {}
+    
+    map_match = re.search(r"Played Map:\s*([^,]+)", line)
+    if map_match:
+        map_val = map_match.group(1).strip()
+        result["map"] = PLAYED_MAP.get(int(map_val), map_val) if map_val.isdigit() else map_val
+    
+    slasher_match = re.search(r"Slasher:\s*(\d+)", line)
+    if slasher_match:
+        slasher_id = int(slasher_match.group(1))
+        result["slasher"] = {
+            "id": slasher_id,
+            "name": SLASHER_MAP.get(slasher_id, f"Unknown({slasher_id})")
+        }
+    
+    items_match = re.search(r"Selected Items:\s*(.+?)(?=,\s*\w+:|$)", line)
+    if items_match:
+        result["items"] = items_match.group(1).strip()
+    
+    generator_pattern = r"SC_(generator\d+) Progress check\. Last (\w+) value: (.*?), updated (\w+) value: (.*)"
+    if "Progress check" in line:
+        gen_match = re.search(generator_pattern, line)
+        if gen_match:
+            result["generator"] = {
+                "name": gen_match.group(1),
+                "var_name": gen_match.group(2),
+                "old_value": gen_match.group(3),
+                "new_value": gen_match.group(5)
+            }
+    
+    return result
+
+def get_user_config():
+    config = {"enable_osc": False, "osc_port": DEFAULT_PORT}
+    
+    while True:
+        osc_choice = input("Enable OSC output? (Y/n): ").strip().lower()
+        if osc_choice in ['y', '']:
+            config["enable_osc"] = True
+            break
+        elif osc_choice == 'n':
+            config["enable_osc"] = False
+            break
+        print("Invalid input, please enter Y/n")
+    
+    if config["enable_osc"]:
+        while True:
+            port_input = input(f"Enter OSC port [default {DEFAULT_PORT}]: ").strip()
+            if not port_input:
+                config["osc_port"] = DEFAULT_PORT
+                break
+            try:
+                port = int(port_input)
+                if 1 <= port <= 65535:
+                    config["osc_port"] = port
+                    break
+                print("Port must be between 1-65535")
+            except ValueError:
+                print("Invalid port number")
+    
+    return config
+
+def init_osc_client(port):
+    try:
+        return udp_client.SimpleUDPClient("127.0.0.1", port)
+    except Exception as e:
+        print(f"[OSC] Initialization failed: {str(e)}")
+        return None
+
+def monitor_logs(config):
+    log_dir = os.path.expandvars(r'%USERPROFILE%\AppData\LocalLow\VRChat\VRChat')
+    osc_client = init_osc_client(config["osc_port"]) if config["enable_osc"] else None
+    
+    current_file = None
+    file_pos = 0
+    
+    print("\n[System] Starting monitoring...")
+    if osc_client:
+        print(f"[OSC] Ready on port {config['osc_port']}")
+    else:
+        print("[OSC] Output disabled")
+    
+    while True:
+        latest = get_latest_log_file(log_dir)
+        if not latest:
+            time.sleep(1)
+            continue
+        
+        if latest != current_file:
+            current_file = latest
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] Monitoring: {os.path.basename(current_file)}")
+            try:
+                with open(current_file, 'rb') as f:
+                    f.seek(0, os.SEEK_END)
+                    file_pos = f.tell()
+            except Exception as e:
+                print(f"File Error: {e}")
+                continue
+
+        try:
+            with open(current_file, 'r', encoding='utf-8', errors='ignore') as f:
+                f.seek(file_pos)
+                lines = f.readlines()
+                file_pos = f.tell()
+                
+                for line in lines:
+                    cleaned = line.strip()
+                    outputs = []
+                    
+                    data = parse_log_line(cleaned)
+
+                    if any(k in cleaned for k in ["Played Map:", "Slasher:", "Selected Items:"]):
+                        if 'map' in data:
+                            outputs.append(f"Map: {data['map']}")
+                        if 'slasher' in data:
+                            outputs.append(f"Slasher: {data['slasher']['name']}")
+                        if 'items' in data:
+                            outputs.append(f"Items: {data['items']}")
+                    
+                    if 'generator' in data:
+                        gen = data['generator']
+                        outputs.append(
+                            f"{gen['name']} - {gen['var_name']} "
+                            f"changed: {gen['old_value']} → {gen['new_value']}"
+                        )
+                        if osc_client:
+                            try:
+                                gen_name = gen['name'].upper()
+                                var_type = gen['var_name']
+                                
+                                param_name = ""
+                                if var_type == "REMAINING":
+                                    param_name = f"{gen_name}_FUEL"
+                                    value = int(gen['new_value'])
+                                elif var_type == "HAS_BATTERY":
+                                    param_name = f"{gen_name}_BATTERY"
+                                    value = 1 if gen['new_value'].lower() == "true" else 0
+                                
+                                osc_address = f"/avatar/parameters/{param_name}"
+                                osc_client.send_message(osc_address, value)
+                                print(f"[OSC] Sent {param_name}: {value}")
+                                
+                            except Exception as e:
+                                print(f"[OSC Error] {gen['name']} {var_type}: {str(e)}")
+                    
+                    if outputs:
+                        timestamp = datetime.now().strftime('%H:%M:%S')
+                        print(f"[{timestamp}] " + " | ".join(outputs))
+
+                    if osc_client and 'slasher' in data:
+                        try:
+                            osc_client.send_message("/avatar/parameters/SlasherID", data['slasher']['id'])
+                            print(f"[OSC] Sent SlasherID:{data['slasher']['id']}")
+                        except Exception as e:
+                            print(f"[OSC Error] {str(e)}")
+                        
+        except Exception as e:
+            print(f"[Error] {datetime.now().strftime('%H:%M:%S')} - {str(e)}")
+            time.sleep(1)
+
+if __name__ == "__main__":
+    print("=== SlasherSense By:arcxingye ===")
+    user_config = get_user_config()
+    monitor_logs(user_config)
