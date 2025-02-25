@@ -57,13 +57,13 @@ class VRChatMonitorGUI:
     def __init__(self, master):
         self.master = master
         master.title("SlashcoSense By:arcxingye")
-        master.geometry("800x600")
+        master.geometry("410x600")
         
-        # 游戏状态面板
         self.status_frame = ttk.LabelFrame(master, text="游戏状态")
-        self.status_frame.pack(fill=BOTH, expand=True, padx=10, pady=5)
+        self.status_frame.pack(fill=BOTH, padx=10, pady=5, expand=False)
+        self.status_frame.grid_propagate(False)
+        self.status_frame.config(width=380, height=175)
         
-        # 地图/杀手/物品状态
         self.map_label = ttk.Label(self.status_frame, text="地图: 未知")
         self.map_label.grid(row=0, column=0, sticky=W, padx=5, pady=2)
         
@@ -73,9 +73,8 @@ class VRChatMonitorGUI:
         self.items_label = ttk.Label(self.status_frame, text="生成物品: 无")
         self.items_label.grid(row=2, column=0, sticky=W, padx=5, pady=2)
         
-        # 发电机状态
         self.generator_frame = ttk.Frame(self.status_frame)
-        self.generator_frame.grid(row=3, column=0, columnspan=2, pady=10, sticky=EW)
+        self.generator_frame.grid(row=3, column=0, columnspan=2, pady=5, sticky=EW)
         
         self.generators = {
             "generator1": {
@@ -94,8 +93,15 @@ class VRChatMonitorGUI:
             gen["label"].grid(row=i, column=0, padx=5, sticky=W)
             gen["fuel"].grid(row=i, column=1, padx=5)
             gen["battery"].grid(row=i, column=2, padx=5)
-        
-        # 日志面板
+
+        self.generator_warning = ttk.Label(
+            self.generator_frame, 
+            text="发电机监控仅限非房主有效", 
+            foreground="gray60", 
+            font=("微软雅黑", 8)
+        )
+        self.generator_warning.grid(row=2, column=0, columnspan=3, padx=5, pady=(0,5), sticky=W)
+
         self.log_frame = ttk.LabelFrame(master, text="实时日志")
         self.log_frame.pack(fill=BOTH, expand=True, padx=10, pady=5)
         
@@ -106,8 +112,7 @@ class VRChatMonitorGUI:
         self.scrollbar.pack(side=RIGHT, fill=Y)
         self.log_text.pack(fill=BOTH, expand=True)
         
-        # OSC控制面板
-        self.osc_frame = ttk.LabelFrame(master, text="OSC设置")
+        self.osc_frame = ttk.Frame(master)
         self.osc_frame.pack(fill=X, padx=10, pady=5)
         
         self.osc_enabled = BooleanVar(value=False)
@@ -115,7 +120,7 @@ class VRChatMonitorGUI:
         
         ttk.Checkbutton(
             self.osc_frame, 
-            text="启用OSC输出", 
+            text="启用OSC", 
             variable=self.osc_enabled, 
             command=self.toggle_osc
         ).grid(row=0, column=0, padx=5, sticky=W)
@@ -124,14 +129,13 @@ class VRChatMonitorGUI:
             self.osc_frame,
             text="显示OSC日志",
             variable=self.osc_log_enabled
-        ).grid(row=0, column=1, padx=5, sticky=W)
+        ).grid(row=0, column=1, padx=3, sticky=W)
         
         ttk.Label(self.osc_frame, text="端口:").grid(row=0, column=2, padx=5)
         self.port_entry = ttk.Entry(self.osc_frame, width=6)
         self.port_entry.insert(0, str(DEFAULT_PORT))
-        self.port_entry.grid(row=0, column=3, padx=5)
+        self.port_entry.grid(row=0, column=3, padx=3)
         
-        # 初始化监控
         self.osc_client = None
         self.log_dir = os.path.expandvars(r'%USERPROFILE%\AppData\LocalLow\VRChat\VRChat')
         self.current_file = None
@@ -178,7 +182,7 @@ class VRChatMonitorGUI:
                 progress = filled / total
                 
                 gen["fuel"]["value"] = progress * 100
-                gen["label"].config(text=f"{gen_data['name'].replace('generator', '发电机')} 燃料: {filled}/{total}")  # 新增修正
+                gen["label"].config(text=f"{gen_data['name'].replace('generator', '发电机')} 燃料: {filled}/{total}")
                 
                 if self.osc_client:
                     param_name = f"{gen_data['name'].upper()}_FUEL"
@@ -218,10 +222,9 @@ class VRChatMonitorGUI:
                         data = parse_log_line(line.strip())
                         
                         if 'map' in data:
-                            self.map_label.config(text=f"当前地图: {data['map']}")
+                            self.map_label.config(text=f"地图: {data['map']}")
                         if 'slasher' in data:
                             self.slasher_label.config(text=f"杀手: {data['slasher']['name']}")
-                            # 新增OSC发送逻辑
                             if self.osc_client:
                                 try:
                                     self.osc_client.send_message(
