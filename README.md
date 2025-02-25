@@ -20,7 +20,7 @@
 [exe版本下载](https://github.com/arcxingye/SlasherSense-VRC/releases/download/exe/SlashcoSense.exe)
 [配套改模包下载](https://github.com/arcxingye/SlasherSense-VRC/releases/download/exe/SlashcoSense.unitypackage)
 
-模型参数
+osc发送参数
 ```
 SlasherID (Int 0-13)
 GENERATOR1_FUEL (Int 0-4)
