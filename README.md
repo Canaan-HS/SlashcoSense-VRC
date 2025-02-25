@@ -18,7 +18,7 @@
 游戏中UI默认在右上角，下面俩排格子分别代表发电机1和2，前4格白底代表缺多少油，绿色代表灌了多少油，最后一格为电池，绿色即为已安装。
 
 [exe版本下载](https://github.com/arcxingye/SlasherSense-VRC/releases/download/exe/SlashcoSense.exe)
-[配套改模包下载](https://github.com/arcxingye/SlasherSense-VRC/releases/download/exe/SlashcoSense.unitypackage)
+[MA预制件下载](https://github.com/arcxingye/SlasherSense-VRC/releases/download/exe/SlashcoSense.unitypackage)
 
 osc发送参数
 ```
