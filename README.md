@@ -21,6 +21,14 @@
 游戏内UI说明：前四格代表缺多少油，最后一格代表是否已安装电池。
 
 
+软件截图
+![image](https://github.com/user-attachments/assets/85a33ff6-2aa8-40d1-8595-b324f456f972)
+VR适配
+![image](https://github.com/user-attachments/assets/15b90e73-3fc4-4116-aeec-bc866341ecf4)
+PC适配
+![image](https://github.com/user-attachments/assets/f8def42e-3877-40aa-9df3-12fe3a715030)
+
+
 预制件的安装方法：
 MA安装，无需调整，直接放进模型里就行，不要放在子集里。
 
