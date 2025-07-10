@@ -36,7 +36,13 @@ except ImportError:
 if TYPE_CHECKING:
     from pythonosc.udp_client import SimpleUDPClient
 
+# 資源 URL
 ASSETS = "https://github.com/Canaan-HS/SlashcoSense-VRC/raw/refs/heads/main/IMG"
+
+DEFAULT_OSC_PORT = 9000  # 預設埠號
+LOG_UPDATE_INTERVAL = 500  # 日誌更新間隔 (毫秒)
+VRC_LOG_DIR = Path.home() / "AppData/LocalLow/VRChat/VRChat"  # VRChat 日誌目錄
+WINDOWS_ICON_URL = f"{ASSETS}/SlashCo.ico"
 
 # 地圖對應
 GAME_MAPS = {
@@ -54,61 +60,61 @@ GAME_MAPS = {
 
 # 殺手對應
 SLASHERS = {
-    0: {  # BABABOOEY
+    0: {
         "name": "巴巴布伊 【肌肉男 / 隱形怪】",
-        "icon": "https://images.steamusercontent.com/ugc/2477635226930588606/2CAE95D776EFCD7F635B7CA497C43079BB9BD71C/",
+        "icon": f"{ASSETS}/BABABOOEY.webp",
     },
-    1: {  # SID
+    1: {
         "name": "席德 【手槍怪 / 餅乾怪】",
-        "icon": "https://images.steamusercontent.com/ugc/2477635226930588312/14B6C7D2AC9E6FC21936F1F2D46CCB1F040F6764/",
+        "icon": f"{ASSETS}/SID.webp",
     },
-    2: {  # TROLLAG
+    2: {
         "name": "特羅勒格巨魔【笑臉男 / 火柴人】",
-        "icon": "https://images.steamusercontent.com/ugc/2477635226930589045/28AD304EBFA4C6BD7636269FE86B9CCFC4146B35/",
+        "icon": f"{ASSETS}/TROLLAG.webp",
     },
-    3: {  # BORGMIRE
+    3: {
         "name": "博格梅爾【機器人】",
-        "icon": "https://images.steamusercontent.com/ugc/2477635226930588057/1C8DCDC50F43E8D61E4CE530DF626AA518F0E3CC/",
+        "icon": f"{ASSETS}/BORGMIRE.webp",
     },
-    4: {  # ABOMIGNAT
+    4: {
         "name": "阿博米納特【憎惡者 / 外星人】",
-        "icon": "https://images.steamusercontent.com/ugc/2477635226930588840/1B1FF6A54E92C5CF5A928A2F4A78A79FB8ADADB0/",
+        "icon": f"{ASSETS}/ABOMIGNAT.webp",
     },
-    5: {  # THIRSTY
+    5: {
         "name": "口渴 【爬行者 / 牛奶怪】",
-        "icon": "https://images.steamusercontent.com/ugc/2477635226930588405/E7E2F6CB2AC3FB6F6F9DEBE0A7ADA4AF0C8DF232/",
+        "icon": f"{ASSETS}/THIRSTY.webp",
     },
-    6: {  # FATHER ELMER
+    6: {
         "name": "埃爾默神父 【霰彈槍 / 神父】",
-        "icon": "https://images.steamusercontent.com/ugc/2477635226930588961/75CEA25777A1E5DE316CE2B424574D14F73461B9/",
+        "icon": f"{ASSETS}/FATHER_ELMER.webp",
     },
-    7: {  # THE WATCHER
+    7: {
         "name": "觀察者 【高個子】",
-        "icon": "https://images.steamusercontent.com/ugc/2477635226930589113/62339E95829B59B81F89C8B910B481C890D9ADEF/",
+        "icon": f"{ASSETS}/THE_WATCHER.webp",
     },
-    8: {  # THE BEAST
+    8: {
         "name": "野獸 【貓貓 / 貓老太】",
-        "icon": "https://images.steamusercontent.com/ugc/2477635226930589274/ED63301BDAE54DBF266EEE88A64BF471C2E78337/",
+        "icon": f"{ASSETS}/THE_BEAST.webp",
     },
-    9: {  # DOLPHINMAN
+    9: {
         "name": "海豚人",
-        "icon": "https://images.steamusercontent.com/ugc/7412825351520453/B2177B52B026AC287C4DEF5D59CC5A41669751C0/",
+        "icon": f"{ASSETS}/DOLPHINMAN.webp",
     },
-    10: {  # IGOR
+    10: {
         "name": "伊戈爾【DJ / 創造者 / 毀滅者】",
-        "icon": "https://images.steamusercontent.com/ugc/7417357814949731/8E94E82D4DB07D7153192F36B98075B19A6ADAE5/",
+        "icon": f"{ASSETS}/IGOR.webp",
     },
-    11: {  # THE GROUCH
+    11: {
         "name": "牢騷者【乞丐】",
-        "icon": "https://images.steamusercontent.com/ugc/7417357814868973/3AA5C51CA2AD30A62BC5F03375197ADA60BE155D/",
+        "icon": f"{ASSETS}/THE_GROUCH.webp",
     },
-    12: {  # PRINCESS
+    12: {
         "name": "公主【狗】",
-        "icon": "https://images.steamusercontent.com/ugc/7421615891170424/8C80D5AC4FBC1827B4FB7EAB032303ADC334E4A4/",
+        "icon": f"{ASSETS}/PRINCESS.webp",
     },
-    13: {  # SPEEDRUNNER
+    13: {
         "name": "極速奔跑者【Dream】",
-        "icon": "https://images.steamusercontent.com/ugc/7421615891170364/29FAAF0C483A0BC133A15EAECB18C1BE19392873/",
+        "icon": f"{ASSETS}/SPEEDRUNNER.webp",
     },
 }
 
@@ -139,10 +145,13 @@ ITEMS = {
     "Balkan Boost": "巴爾幹激素",
 }
 
-DEFAULT_OSC_PORT = 9000  # 預設埠號
-LOG_UPDATE_INTERVAL = 500  # 日誌更新間隔 (毫秒)
-VRC_LOG_DIR = Path.home() / "AppData/LocalLow/VRChat/VRChat"  # VRChat 日誌目錄
-WINDOWS_ICON_URL = f"{ASSETS}/SlashCo.ico"
+# 進度條顏色對應
+PROGRESS_COLORS = {
+    (0, 25): "#555555",  # 灰色
+    (25, 50): "#e74c3c",  # 紅色
+    (50, 75): "#f39c12",  # 黃色
+    (75, 100): "#27ae60",  # 綠色
+}
 
 # 編譯物品解析正則
 ITEMS_PATTERN = re.compile(
@@ -166,14 +175,6 @@ LOG_PATTERNS = (
         "generator",
     ),
 )
-
-# 進度條顏色對應
-PROGRESS_COLORS = {
-    (0, 25): "#555555",  # 灰色
-    (25, 50): "#e74c3c",  # 紅色
-    (50, 75): "#f39c12",  # 黃色
-    (75, 100): "#27ae60",  # 綠色
-}
 
 
 def get_progress_color(value: int) -> str:
