@@ -36,6 +36,8 @@ except ImportError:
 if TYPE_CHECKING:
     from pythonosc.udp_client import SimpleUDPClient
 
+ASSETS = "https://github.com/Canaan-HS/SlashcoSense-VRC/raw/refs/heads/main/IMG"
+
 # 地圖對應
 GAME_MAPS = {
     "0": "舊 SlashCo 總部",
@@ -140,7 +142,7 @@ ITEMS = {
 DEFAULT_OSC_PORT = 9000  # 預設埠號
 LOG_UPDATE_INTERVAL = 500  # 日誌更新間隔 (毫秒)
 VRC_LOG_DIR = Path.home() / "AppData/LocalLow/VRChat/VRChat"  # VRChat 日誌目錄
-WINDOWS_ICON_URL = "https://images.steamusercontent.com/ugc/2477635226930601215/D3708CAF453353764ADE800A779730BFCEF83408/"
+WINDOWS_ICON_URL = f"{ASSETS}/SlashCo.ico"
 
 # 編譯物品解析正則
 ITEMS_PATTERN = re.compile(
@@ -287,18 +289,18 @@ class SlashcoSenseMainWindow(QMainWindow):
         QTimer.singleShot(
             300,
             lambda: (
-                # 設定定時器
-                setattr(self, "log_timer", QTimer()),
-                self.log_timer.timeout.connect(self._monitor_logs),
-                self.log_timer.start(LOG_UPDATE_INTERVAL),
-                self.log_message.connect(self._append_log_message),
-                # 建立網路請求並設定屬性
+                # 請求圖示
                 (
                     lambda req: (
                         req.setAttribute(QNetworkRequest.Attribute.User, "icon"),
                         self.network_manager.get(req),
                     )
                 )(QNetworkRequest(QUrl(WINDOWS_ICON_URL))),
+                # 啟動監控
+                setattr(self, "log_timer", QTimer()),
+                self.log_timer.timeout.connect(self._monitor_logs),
+                self.log_timer.start(LOG_UPDATE_INTERVAL),
+                self.log_message.connect(self._append_log_message),
             ),
         )
 
