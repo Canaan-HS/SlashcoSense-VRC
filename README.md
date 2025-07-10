@@ -6,8 +6,10 @@
 
 透過讀取日誌，輸出 Slashco VR 遊戲執行中的資訊。更新後可能會失效。
 
+### UI 預覽:
+![](https://github.com/user-attachments/assets/28d5bb26-caec-4399-9293-3f336076ad99)
 
-功能：
+### 功能：
 
 1.開局知曉地圖、Slasher、生成的物品資訊
 
@@ -18,7 +20,7 @@
 4.PCVR雙適配，PC顯示在螢幕，VR顯示在左手上，均可調節
 
 
-預製件的安裝方法 (原作者編譯，非本項目)：
+### 預製件的安裝方法 (**原作者編譯，非本項目**)：
 MA安裝，無需調整，直接放進模型裡就行，不要放在子集裡。
 
 [exe版本下載](https://github.com/arcxingye/SlasherSense-VRC/releases/download/exe/SlashcoSense.exe)
