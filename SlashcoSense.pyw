@@ -524,6 +524,7 @@ class SlashcoSenseMainWindow(QMainWindow):
     def _on_image_loaded(self, reply: QNetworkReply):
         """圖片載入完成的回撥"""
         url = reply.request().attribute(QNetworkRequest.Attribute.User)
+        self.image_label.setStyleSheet("")  # 恢復原本樣式
 
         if reply.error() == QNetworkReply.NetworkError.NoError:
             pixmap = QPixmap()
@@ -538,7 +539,7 @@ class SlashcoSenseMainWindow(QMainWindow):
                 center_crop = pixmap.copy(x, y, side, side)
 
                 # 圖示大小
-                icon_size = 124
+                icon_size = 64
                 scaled = center_crop.scaled(
                     icon_size, icon_size, Qt.KeepAspectRatio, Qt.SmoothTransformation
                 )
@@ -558,7 +559,6 @@ class SlashcoSenseMainWindow(QMainWindow):
                 # 設定視窗圖示
                 self.setWindowIcon(QIcon(circular))
             elif pixmap.loadFromData(image_data):  # 載入殺手圖片
-                self.image_label.setStyleSheet("")  # 恢復原本樣式
 
                 if url:
                     QPixmapCache.insert(url, pixmap)  # 存入 QPixmapCache
