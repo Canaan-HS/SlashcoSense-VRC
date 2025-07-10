@@ -287,6 +287,11 @@ class SlashcoSenseMainWindow(QMainWindow):
         QTimer.singleShot(
             300,
             lambda: (
+                # 設定定時器
+                setattr(self, "log_timer", QTimer()),
+                self.log_timer.timeout.connect(self._monitor_logs),
+                self.log_timer.start(LOG_UPDATE_INTERVAL),
+                self.log_message.connect(self._append_log_message),
                 # 建立網路請求並設定屬性
                 (
                     lambda req: (
@@ -294,11 +299,6 @@ class SlashcoSenseMainWindow(QMainWindow):
                         self.network_manager.get(req),
                     )
                 )(QNetworkRequest(QUrl(WINDOWS_ICON_URL))),
-                # 設定定時器
-                setattr(self, "log_timer", QTimer()),
-                self.log_timer.timeout.connect(self._monitor_logs),
-                self.log_timer.start(LOG_UPDATE_INTERVAL),
-                self.log_message.connect(self._append_log_message),
             ),
         )
 
