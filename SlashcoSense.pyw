@@ -587,8 +587,8 @@ class SlashcoSenseMainWindow(QMainWindow):
         # 上方彈性空間 - 把內容推到中間
         game_layout.addStretch()
 
-        self.map_label = QLabel(Transl(f"{Transl("地圖")}: {Transl("未知")}"))
-        self.slasher_label = QLabel(Transl(f"{Transl("殺手")}: {Transl("未知")}"))
+        self.map_label = QLabel(f"{Transl("地圖")}: {Transl("未知")}")
+        self.slasher_label = QLabel(f"{Transl("殺手")}: {Transl("未知")}")
         self.items_label = QLabel(Transl("生成物品: 無"))
 
         font = QFont("Microsoft YaHei", 11)
