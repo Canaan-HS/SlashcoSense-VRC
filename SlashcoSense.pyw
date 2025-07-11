@@ -966,7 +966,6 @@ class SlashcoSenseMainWindow(QMainWindow):
             except (ValueError, IndexError):
                 pass
 
-            # 下方所有的 self.reset_mark, 判斷都是避免不必要的 UI 更新, 但是數據需要更新, 所以不能統一跳過
             if data_type == "map":
                 new_game_info = True
 
@@ -976,7 +975,7 @@ class SlashcoSenseMainWindow(QMainWindow):
                 info = Transl("地圖")
                 log_parts.append(f"{info}: {map_name}")
 
-                if not self.reset_mark:
+                if map_name not in self.info_cache:
                     self.map_label.setText(f"{info}: \n{map_name}")
 
             elif data_type == "slasher":
@@ -996,7 +995,7 @@ class SlashcoSenseMainWindow(QMainWindow):
                 info = Transl("殺手")
                 log_parts.append(f"{info}: {name}")
 
-                if self.reset_mark:
+                if name in self.info_cache:
                     continue
 
                 self.slasher_label.setText(f"{info}: \n{name}")
@@ -1016,7 +1015,7 @@ class SlashcoSenseMainWindow(QMainWindow):
                 items = parse_items(match.group(2).strip())
                 log_parts.append(f"{Transl('物品')}: {items}")
 
-                if not self.reset_mark:
+                if items not in self.info_cache:
                     self.items_label.setText(f"{Transl('生成物品')}: \n{items}")
 
             elif data_type == "generator" and not self.reset_mark:  # 重置標記時禁止更新
@@ -1031,13 +1030,12 @@ class SlashcoSenseMainWindow(QMainWindow):
                 if message == self.info_cache:
                     # 重複的遊戲資訊 = 遊戲結束，執行重置邏輯
                     if not self.reset_mark:
-                        self._reset_generators()
                         self.reset_mark = True
-                    return
                 else:
                     # 新的遊戲資訊 = 新遊戲開始
                     self.reset_mark = False
                     self.info_cache = message
+                self._reset_generators()
 
             # 重置狀態下禁止傳送日誌
             if self.reset_mark:
