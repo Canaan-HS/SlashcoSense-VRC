@@ -310,103 +310,103 @@ Transl = Language()
 
 # 地圖對應
 GAME_MAPS = {
-    "0": Transl('舊 SlashCo 總部'),
-    "SlashCoHQ": Transl('舊 SlashCo 總部'),
-    "1": Transl('馬龍斯農場'),
-    "MalonesFarmyard": Transl('馬龍斯農場'),
-    "2": Transl('菲利普斯•書斯特伍德高中'),
-    "PhilipsWestwoodHighSchool": Transl('菲利普斯•書斯特伍德高中'),
-    "3": Transl('伊斯特伍德綜合醫院'),
-    "EastwoodGeneralHospital": Transl('伊斯特伍德綜合醫院'),
-    "4": Transl('德爾塔科研機構'),
-    "ResearchFacilityDelta": Transl('德爾塔科研機構'),
+    "0": Transl("舊 SlashCo 總部"),
+    "SlashCoHQ": Transl("舊 SlashCo 總部"),
+    "1": Transl("馬龍斯農場"),
+    "MalonesFarmyard": Transl("馬龍斯農場"),
+    "2": Transl("菲利普斯•書斯特伍德高中"),
+    "PhilipsWestwoodHighSchool": Transl("菲利普斯•書斯特伍德高中"),
+    "3": Transl("伊斯特伍德綜合醫院"),
+    "EastwoodGeneralHospital": Transl("伊斯特伍德綜合醫院"),
+    "4": Transl("德爾塔科研機構"),
+    "ResearchFacilityDelta": Transl("德爾塔科研機構"),
 }
 
 # 殺手對應
 SLASHERS = {
     0: {
-        "name": Transl('巴巴布伊 【肌肉男 / 隱形怪】'),
+        "name": Transl("巴巴布伊 【肌肉男 / 隱形怪】"),
         "icon": f"{ASSETS}/BABABOOEY.webp",
     },
     1: {
-        "name": Transl('席德 【手槍怪 / 餅乾怪】'),
+        "name": Transl("席德 【手槍怪 / 餅乾怪】"),
         "icon": f"{ASSETS}/SID.webp",
     },
     2: {
-        "name": Transl('特羅勒格巨魔【笑臉男 / 火柴人】'),
+        "name": Transl("特羅勒格巨魔【笑臉男 / 火柴人】"),
         "icon": f"{ASSETS}/TROLLAG.webp",
     },
     3: {
-        "name": Transl('博格梅爾【機器人】'),
+        "name": Transl("博格梅爾【機器人】"),
         "icon": f"{ASSETS}/BORGMIRE.webp",
     },
     4: {
-        "name": Transl('阿博米納特【憎惡者 / 外星人】'),
+        "name": Transl("阿博米納特【憎惡者 / 外星人】"),
         "icon": f"{ASSETS}/ABOMIGNAT.webp",
     },
     5: {
-        "name": Transl('口渴 【爬行者 / 牛奶怪】'),
+        "name": Transl("口渴 【爬行者 / 牛奶怪】"),
         "icon": f"{ASSETS}/THIRSTY.webp",
     },
     6: {
-        "name": Transl('埃爾默神父 【霰彈槍 / 神父】'),
+        "name": Transl("埃爾默神父 【霰彈槍 / 神父】"),
         "icon": f"{ASSETS}/FATHER_ELMER.webp",
     },
     7: {
-        "name": Transl('觀察者 【高個子】'),
+        "name": Transl("觀察者 【高個子】"),
         "icon": f"{ASSETS}/THE_WATCHER.webp",
     },
     8: {
-        "name": Transl('野獸 【貓貓 / 貓老太】'),
+        "name": Transl("野獸 【貓貓 / 貓老太】"),
         "icon": f"{ASSETS}/THE_BEAST.webp",
     },
     9: {
-        "name": Transl('海豚人'),
+        "name": Transl("海豚人"),
         "icon": f"{ASSETS}/DOLPHINMAN.webp",
     },
     10: {
-        "name": Transl('伊戈爾【DJ / 創造者 / 毀滅者】'),
+        "name": Transl("伊戈爾【DJ / 創造者 / 毀滅者】"),
         "icon": f"{ASSETS}/IGOR.webp",
     },
     11: {
-        "name": Transl('牢騷者【乞丐】'),
+        "name": Transl("牢騷者【乞丐】"),
         "icon": f"{ASSETS}/THE_GROUCH.webp",
     },
     12: {
-        "name": Transl('公主【狗】'),
+        "name": Transl("公主【狗】"),
         "icon": f"{ASSETS}/PRINCESS.webp",
     },
     13: {
-        "name": Transl('極速奔跑者'),
+        "name": Transl("極速奔跑者"),
         "icon": f"{ASSETS}/SPEEDRUNNER.webp",
     },
 }
 
 # 物品對應
 ITEMS = {
-    "Proxy-Locator": Transl('定位器'),
-    "Royal Burger": Transl('皇家漢堡'),
-    "Cookie": Transl('餅乾'),
-    "Beer Keg": Transl('啤酒桶'),
-    "Mayonnaise": Transl('美乃滋'),
-    "Orange Jello": Transl('橙色果凍'),
-    "Costco Frozen Pizza": Transl('COSTCO速凍披薩'),
-    "Airport Jungle Juice": Transl('機場的烈性酒'),
-    "Rhino Pill": Transl('犀牛丸'),
-    "The Rock": Transl('岩石'),
-    "Lab-Grown Meat": Transl('人造肉'),
-    "Pocket Sand": Transl('沙袋'),
-    "The Baby": Transl('巫毒娃娃'),
-    "Newport Menthols": Transl('紐波特薄荷'),
-    "B-GONE Soda": Transl('B-GONE蘇打水'),
-    "Red40": Transl('40號紅色染劑'),
-    "Red40 Vial": Transl('40號紅色染劑'),
-    "Milk Jug": Transl('桶裝牛奶'),
-    "Pot of Greed": Transl('貪婪之壺'),
-    "Deathward": Transl('不死圖騰'),
-    "Evil Jonkler Cart": Transl('邪惡的瓊克爾•卡特'),
-    "25 Gram Benadryl": Transl('25克苯海拉明'),
-    "Balkan Boost": Transl('巴爾幹激素'),
+    "Proxy-Locator": Transl("定位器"),
+    "Royal Burger": Transl("皇家漢堡"),
+    "Cookie": Transl("餅乾"),
+    "Beer Keg": Transl("啤酒桶"),
+    "Mayonnaise": Transl("美乃滋"),
+    "Orange Jello": Transl("橙色果凍"),
+    "Costco Frozen Pizza": Transl("COSTCO速凍披薩"),
+    "Airport Jungle Juice": Transl("機場的烈性酒"),
+    "Rhino Pill": Transl("犀牛丸"),
+    "The Rock": Transl("岩石"),
+    "Lab-Grown Meat": Transl("人造肉"),
+    "Pocket Sand": Transl("沙袋"),
+    "The Baby": Transl("巫毒娃娃"),
+    "Newport Menthols": Transl("紐波特薄荷"),
+    "B-GONE Soda": Transl("B-GONE蘇打水"),
+    "Red40": Transl("40號紅色染劑"),
+    "Red40 Vial": Transl("40號紅色染劑"),
+    "Milk Jug": Transl("桶裝牛奶"),
+    "Pot of Greed": Transl("貪婪之壺"),
+    "Deathward": Transl("不死圖騰"),
+    "Evil Jonkler Cart": Transl("邪惡的瓊克爾•卡特"),
+    "25 Gram Benadryl": Transl("25克苯海拉明"),
+    "Balkan Boost": Transl("巴爾幹激素"),
 }
 
 # 編譯物品解析正則
@@ -572,7 +572,7 @@ class SlashcoSenseMainWindow(QMainWindow):
         main_layout.setContentsMargins(15, 15, 15, 15)
 
         # 遊戲狀態群組
-        game_group = QGroupBox(Transl('遊戲狀態'))
+        game_group = QGroupBox(Transl("遊戲狀態"))
         game_group.setFont(QFont("Microsoft YaHei", 12, QFont.Weight.Bold))
 
         # 修改為水平佈局，左邊是遊戲資訊，右邊是圖片
@@ -589,7 +589,7 @@ class SlashcoSenseMainWindow(QMainWindow):
 
         self.map_label = QLabel(f"{Transl('地圖')}: {Transl('未知')}")
         self.slasher_label = QLabel(f"{Transl('殺手')}: {Transl('未知')}")
-        self.items_label = QLabel(Transl('生成物品: 無'))
+        self.items_label = QLabel(Transl("生成物品: 無"))
 
         font = QFont("Microsoft YaHei", 11)
         for label in [self.map_label, self.slasher_label, self.items_label]:
@@ -615,7 +615,7 @@ class SlashcoSenseMainWindow(QMainWindow):
         self.image_label.setObjectName("imageDisplay")
         self.image_label.setFixedSize(200, 200)
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.image_label.setText(Transl('未知'))
+        self.image_label.setText(Transl("未知"))
         self.image_label.setScaledContents(True)
 
         image_layout.addWidget(self.image_label)
@@ -625,7 +625,7 @@ class SlashcoSenseMainWindow(QMainWindow):
         game_main_layout.addWidget(image_widget, 0)  # 權重0，固定大小
 
         # 發電機狀態群組 - 直接建立，避免迴圈開銷
-        gen_group = QGroupBox(Transl('發電機狀態'))
+        gen_group = QGroupBox(Transl("發電機狀態"))
         gen_group.setFont(QFont("Microsoft YaHei", 12, QFont.Weight.Bold))
         gen_layout = QVBoxLayout(gen_group)
         gen_layout.setSpacing(10)
@@ -670,22 +670,22 @@ class SlashcoSenseMainWindow(QMainWindow):
         gen_layout.addWidget(gen_widget1)
         gen_layout.addWidget(gen_widget2)
 
-        warning = QLabel(Transl('發電機監控僅限非房主有效'))
+        warning = QLabel(Transl("發電機監控僅限非房主有效"))
         warning.setObjectName("warningText")
         warning.setAlignment(Qt.AlignmentFlag.AlignCenter)
         gen_layout.addWidget(warning)
 
         # OSC 設定群組
-        osc_group = QGroupBox(Transl('OSC 設定'))
+        osc_group = QGroupBox(Transl("OSC 設定"))
         osc_group.setFont(QFont("Microsoft YaHei", 12, QFont.Weight.Bold))
         osc_layout = QHBoxLayout(osc_group)
         osc_layout.setSpacing(15)
 
-        self.osc_enabled_checkbox = QCheckBox(Transl('啟用 OSC'))
+        self.osc_enabled_checkbox = QCheckBox(Transl("啟用 OSC"))
         self.osc_enabled_checkbox.toggled.connect(self._toggle_osc)
         self.osc_enabled_checkbox.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
-        self.osc_log_enabled_checkbox = QCheckBox(Transl('顯示 OSC 日誌'))
+        self.osc_log_enabled_checkbox = QCheckBox(Transl("顯示 OSC 日誌"))
         self.osc_log_enabled_checkbox.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.osc_log_enabled_checkbox.setChecked(True)
 
@@ -695,11 +695,11 @@ class SlashcoSenseMainWindow(QMainWindow):
         osc_layout.addWidget(self.osc_enabled_checkbox)
         osc_layout.addWidget(self.osc_log_enabled_checkbox)
         osc_layout.addStretch()
-        osc_layout.addWidget(QLabel(Transl('埠號:')))
+        osc_layout.addWidget(QLabel(Transl("埠號:")))
         osc_layout.addWidget(self.port_input)
 
         # 日誌顯示群組
-        log_group = QGroupBox(Transl('日誌監控'))
+        log_group = QGroupBox(Transl("日誌監控"))
         log_group.setFont(QFont("Microsoft YaHei", 12, QFont.Weight.Bold))
         log_layout = QVBoxLayout(log_group)
 
@@ -825,9 +825,9 @@ class SlashcoSenseMainWindow(QMainWindow):
                 # radius 與 QLabel 的 border-radius 相同
                 self.image_label.setPixmap(self._rounded_pixmap(scaled_pixmap, radius=8))
             elif url != "icon":
-                self.image_label.setText(Transl('載入失敗'))
+                self.image_label.setText(Transl("載入失敗"))
         elif url != "icon":
-            self.image_label.setText(Transl('載入失敗'))
+            self.image_label.setText(Transl("載入失敗"))
 
         reply.deleteLater()
 
@@ -869,7 +869,7 @@ class SlashcoSenseMainWindow(QMainWindow):
             )
         else:
             self.image_label.clear()
-            self.image_label.setText(Transl('未知'))
+            self.image_label.setText(Transl("未知"))
             self.image_label.setStyleSheet("")
 
     def _toggle_osc(self, enabled: bool):
@@ -882,15 +882,15 @@ class SlashcoSenseMainWindow(QMainWindow):
                     self.osc_enabled = True
                     self.log_message.emit(f"{Transl('OSC 已啟用')}（{Transl('埠')}：{port}）")
                 else:
-                    self.log_message.emit(Transl('錯誤：埠號無效或 OSC 不可用'))
+                    self.log_message.emit(Transl("錯誤：埠號無效或 OSC 不可用"))
                     self.osc_enabled_checkbox.setChecked(False)
             except (ValueError, Exception):
-                self.log_message.emit(Transl('錯誤：OSC 啟用失敗'))
+                self.log_message.emit(Transl("錯誤：OSC 啟用失敗"))
                 self.osc_enabled_checkbox.setChecked(False)
         else:
             self.osc_client = None
             self.osc_enabled = False
-            self.log_message.emit(Transl('OSC 已停用'))
+            self.log_message.emit(Transl("OSC 已停用"))
 
     def _send_osc(self, param: str, value: Any) -> bool:
         """快速傳送OSC引數"""
@@ -947,7 +947,6 @@ class SlashcoSenseMainWindow(QMainWindow):
         log_parts = []
         new_game_info = False
 
-        # 單次遍歷所有模式，避免重複搜尋
         for pattern, data_type in LOG_PATTERNS:
             match = pattern.search(line)
 
@@ -964,19 +963,21 @@ class SlashcoSenseMainWindow(QMainWindow):
                     continue
 
                 self.record_timestamp[search_key] = log_timestamp
-
             except (ValueError, IndexError):
                 pass
 
+            # 下方所有的 self.reset_mark, 判斷都是避免不必要的 UI 更新, 但是數據需要更新, 所以不能統一跳過
             if data_type == "map":
                 new_game_info = True
 
                 map_val = match.group(2).strip()
                 map_name = GAME_MAPS.get(map_val, map_val)
 
-                info = Transl('地圖')
-                self.map_label.setText(f"{info}: \n{map_name}")
+                info = Transl("地圖")
                 log_parts.append(f"{info}: {map_name}")
+
+                if not self.reset_mark:
+                    self.map_label.setText(f"{info}: \n{map_name}")
 
             elif data_type == "slasher":
                 new_game_info = True
@@ -992,9 +993,13 @@ class SlashcoSenseMainWindow(QMainWindow):
                 name = slasher_data["name"]
                 icon = slasher_data["icon"]
 
-                info = Transl('殺手')
-                self.slasher_label.setText(f"{info}: \n{name}")
+                info = Transl("殺手")
                 log_parts.append(f"{info}: {name}")
+
+                if self.reset_mark:
+                    continue
+
+                self.slasher_label.setText(f"{info}: \n{name}")
 
                 # 更新圖片
                 self._set_image_url(icon if icon else "")
@@ -1007,10 +1012,12 @@ class SlashcoSenseMainWindow(QMainWindow):
                     self.log_message.emit(f"{Transl('[OSC] 傳送 SlasherID')}: {slasher_id}")
 
             elif data_type == "items":
-                items = parse_items(match.group(2).strip())
-                self.items_label.setText(f"{Transl('生成物品')}: \n{items}")
-                log_parts.append(f"{Transl('物品')}: {items}")
                 new_game_info = True
+                items = parse_items(match.group(2).strip())
+                log_parts.append(f"{Transl('物品')}: {items}")
+
+                if not self.reset_mark:
+                    self.items_label.setText(f"{Transl('生成物品')}: \n{items}")
 
             elif data_type == "generator" and not self.reset_mark:  # 重置標記時禁止更新
                 _, gen_name, var_type, _, _, new_value = match.groups()
