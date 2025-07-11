@@ -1,11 +1,14 @@
 # Original Author : https://github.com/arcxingye/SlasherSense-VRC/
 
-from __future__ import annotations
-
+import os
 import re
 import sys
-from datetime import datetime
+import locale
+import ctypes
+import platform
+
 from pathlib import Path
+from datetime import datetime
 from typing import Optional, Any, TYPE_CHECKING
 
 from PySide6.QtWidgets import (
@@ -21,7 +24,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QGroupBox,
 )
-from PySide6.QtCore import Qt, QTimer, Signal, QSize, QUrl
+from PySide6.QtCore import Qt, QUrl, QSize, QTimer, Signal
 from PySide6.QtGui import QFont, QIcon, QCursor, QPixmap, QPainter, QPixmapCache, QPainterPath
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkRequest, QNetworkReply
 
@@ -41,109 +44,8 @@ ASSETS = "https://github.com/Canaan-HS/SlashcoSense-VRC/raw/refs/heads/main/IMG"
 
 DEFAULT_OSC_PORT = 9000  # 預設埠號
 LOG_UPDATE_INTERVAL = 500  # 日誌更新間隔 (毫秒)
+WINDOWS_ICON_URL = f"{ASSETS}/SlashCo.ico"  # 窗口圖標
 VRC_LOG_DIR = Path.home() / "AppData/LocalLow/VRChat/VRChat"  # VRChat 日誌目錄
-WINDOWS_ICON_URL = f"{ASSETS}/SlashCo.ico"
-
-# 地圖對應
-GAME_MAPS = {
-    "0": "舊 SlashCo 總部",
-    "SlashCoHQ": "舊 SlashCo 總部",
-    "1": "馬龍斯農場",
-    "MalonesFarmyard": "馬龍斯農場",
-    "2": "菲利普斯•書斯特伍德高中",
-    "PhilipsWestwoodHighSchool": "菲利普斯•書斯特伍德高中",
-    "3": "伊斯特伍德綜合醫院",
-    "EastwoodGeneralHospital": "伊斯特伍德綜合醫院",
-    "4": "德爾塔科研機構",
-    "ResearchFacilityDelta": "德爾塔科研機構",
-}
-
-# 殺手對應
-SLASHERS = {
-    0: {
-        "name": "巴巴布伊 【肌肉男 / 隱形怪】",
-        "icon": f"{ASSETS}/BABABOOEY.webp",
-    },
-    1: {
-        "name": "席德 【手槍怪 / 餅乾怪】",
-        "icon": f"{ASSETS}/SID.webp",
-    },
-    2: {
-        "name": "特羅勒格巨魔【笑臉男 / 火柴人】",
-        "icon": f"{ASSETS}/TROLLAG.webp",
-    },
-    3: {
-        "name": "博格梅爾【機器人】",
-        "icon": f"{ASSETS}/BORGMIRE.webp",
-    },
-    4: {
-        "name": "阿博米納特【憎惡者 / 外星人】",
-        "icon": f"{ASSETS}/ABOMIGNAT.webp",
-    },
-    5: {
-        "name": "口渴 【爬行者 / 牛奶怪】",
-        "icon": f"{ASSETS}/THIRSTY.webp",
-    },
-    6: {
-        "name": "埃爾默神父 【霰彈槍 / 神父】",
-        "icon": f"{ASSETS}/FATHER_ELMER.webp",
-    },
-    7: {
-        "name": "觀察者 【高個子】",
-        "icon": f"{ASSETS}/THE_WATCHER.webp",
-    },
-    8: {
-        "name": "野獸 【貓貓 / 貓老太】",
-        "icon": f"{ASSETS}/THE_BEAST.webp",
-    },
-    9: {
-        "name": "海豚人",
-        "icon": f"{ASSETS}/DOLPHINMAN.webp",
-    },
-    10: {
-        "name": "伊戈爾【DJ / 創造者 / 毀滅者】",
-        "icon": f"{ASSETS}/IGOR.webp",
-    },
-    11: {
-        "name": "牢騷者【乞丐】",
-        "icon": f"{ASSETS}/THE_GROUCH.webp",
-    },
-    12: {
-        "name": "公主【狗】",
-        "icon": f"{ASSETS}/PRINCESS.webp",
-    },
-    13: {
-        "name": "極速奔跑者【Dream】",
-        "icon": f"{ASSETS}/SPEEDRUNNER.webp",
-    },
-}
-
-# 物品對應
-ITEMS = {
-    "Proxy-Locator": "定位器",
-    "Royal Burger": "皇家漢堡",
-    "Cookie": "曲奇",
-    "Beer Keg": "啤酒桶",
-    "Mayonnaise": "蛋黃醬",
-    "Orange Jello": "橙色果凍",
-    "Costco Frozen Pizza": "COSTCO速凍披薩",
-    "Airport Jungle Juice": "機場的烈性酒",
-    "Rhino Pill": "犀牛丸",
-    "The Rock": "岩石",
-    "Lab-Grown Meat": "人造肉",
-    "Pocket Sand": "沙袋",
-    "The Baby": "巫毒娃娃",
-    "Newport Menthols": "紐波特薄荷",
-    "B-GONE Soda": "B-GONE蘇打水",
-    "Red40": "40號紅色染劑",
-    "Red40 Vial": "40號紅色染劑",
-    "Milk Jug": "桶裝牛奶",
-    "Pot of Greed": "貪婪之壺",
-    "Deathward": "不死圖騰",
-    "Evil Jonkler Cart": "邪惡的瓊克爾•卡特",
-    "25 Gram Benadryl": "25克苯海拉明",
-    "Balkan Boost": "巴爾幹激素",
-}
 
 # 進度條顏色對應
 PROGRESS_COLORS = {
@@ -151,6 +53,360 @@ PROGRESS_COLORS = {
     (25, 50): "#e74c3c",  # 紅色
     (50, 75): "#f39c12",  # 黃色
     (75, 100): "#27ae60",  # 綠色
+}
+
+
+def Language(Lang=None):
+    """翻譯對照 (by: AI translation)"""
+    Word = {
+        "zh_TW": {"": ""},
+        "zh_CN": {
+            "舊 SlashCo 總部": "旧 SlashCo 总部",
+            "馬龍斯農場": "马龙斯农场",
+            "菲利普斯•書斯特伍德高中": "菲利普斯·舒斯特伍德高中",
+            "伊斯特伍德綜合醫院": "伊斯特伍德综合医院",
+            "德爾塔科研機構": "德尔塔科研机构",
+            "巴巴布伊 【肌肉男 / 隱形怪】": "巴巴布伊【肌肉男 / 隐形怪】",
+            "席德 【手槍怪 / 餅乾怪】": "席德【手枪怪 / 饼干怪】",
+            "特羅勒格巨魔【笑臉男 / 火柴人】": "特罗勒格巨魔【笑脸男 / 火柴人】",
+            "博格梅爾【機器人】": "博格梅尔【机器人】",
+            "阿博米納特【憎惡者 / 外星人】": "阿博米纳特【憎恶者 / 外星人】",
+            "口渴 【爬行者 / 牛奶怪】": "口渴【爬行者 / 牛奶怪】",
+            "埃爾默神父 【霰彈槍 / 神父】": "埃尔默神父【霰弹枪 / 神父】",
+            "觀察者 【高個子】": "观察者【高个子】",
+            "野獸 【貓貓 / 貓老太】": "野兽【猫猫 / 猫老太】",
+            "海豚人": "海豚人",
+            "伊戈爾【DJ / 創造者 / 毀滅者】": "伊戈尔【DJ / 创造者 / 毁灭者】",
+            "牢騷者【乞丐】": "牢骚者【乞丐】",
+            "公主【狗】": "公主【狗】",
+            "極速奔跑者": "极速奔跑者",
+            "定位器": "定位器",
+            "皇家漢堡": "皇家汉堡",
+            "餅乾": "饼干",
+            "啤酒桶": "啤酒桶",
+            "美乃滋": "美乃滋",
+            "橙色果凍": "橙色果冻",
+            "COSTCO速凍披薩": "COSTCO速冻披萨",
+            "機場的烈性酒": "机场的烈性酒",
+            "犀牛丸": "犀牛丸",
+            "岩石": "岩石",
+            "人造肉": "人造肉",
+            "沙袋": "沙袋",
+            "巫毒娃娃": "巫毒娃娃",
+            "紐波特薄荷": "纽波特薄荷",
+            "B-GONE蘇打水": "B-GONE苏打水",
+            "40號紅色染劑": "40号红色染剂",
+            "桶裝牛奶": "桶装牛奶",
+            "貪婪之壺": "贪婪之壶",
+            "不死圖騰": "不死图腾",
+            "邪惡的瓊克爾•卡特": "邪恶的琼克尔·卡特",
+            "25克苯海拉明": "25克苯海拉明",
+            "巴爾幹激素": "巴尔干激素",
+            "遊戲狀態": "游戏状态",
+            "未知": "未知",
+            "地圖": "地图",
+            "殺手": "杀手",
+            "物品": "物品",
+            "生成物品": "生成物品",
+            "生成物品: 無": "生成物品：无",
+            "發電機狀態": "发电机状态",
+            "發電機": "发电机",
+            "發電機監控僅限非房主有效": "发电机监控仅限非房主有效",
+            "OSC 設定": "OSC 设置",
+            "啟用 OSC": "启用 OSC",
+            "錯誤：OSC 啟用失敗": "错误：OSC 启用失败",
+            "OSC 已啟用": "OSC 已启用",
+            "OSC 已停用": "OSC 已停用",
+            "顯示 OSC 日誌": "显示 OSC 日志",
+            "埠": "端口",
+            "埠號:": "端口号：",
+            "日誌監控": "日志监控",
+            "開始監控日誌": "开始监控日志",
+            "載入失敗": "加载失败",
+            "錯誤：埠號無效或 OSC 不可用": "错误：端口号无效或 OSC 不可用",
+            "[OSC] 傳送 SlasherID": "[OSC] 传送 SlasherID",
+            "[OSC] 傳送 GENERATOR1_FUEL": "[OSC] 传送 GENERATOR1_FUEL",
+            "[OSC] 傳送 GENERATOR2_FUEL": "[OSC] 传送 GENERATOR2_FUEL",
+            "[OSC] 傳送 GENERATOR1_BATTERY": "[OSC] 传送 GENERATOR1_BATTERY",
+            "[OSC] 傳送 GENERATOR2_BATTERY": "[OSC] 传送 GENERATOR2_BATTERY",
+        },
+        "en_US": {
+            "舊 SlashCo 總部": "SlashCo HQ",
+            "馬龍斯農場": "Malones Farmyard",
+            "菲利普斯•書斯特伍德高中": "Philips Westwood HighSchool",
+            "伊斯特伍德綜合醫院": "Eastwood General Hospital",
+            "德爾塔科研機構": "Research Facility Delta",
+            "巴巴布伊 【肌肉男 / 隱形怪】": "Bababooey [Muscle Man / Invisible Freak]",
+            "席德 【手槍怪 / 餅乾怪】": "Cid [Pistol Freak / Cookie Monster]",
+            "特羅勒格巨魔【笑臉男 / 火柴人】": "Trollag [Smiley / Stickman]",
+            "博格梅爾【機器人】": "Borgmire [Robot]",
+            "阿博米納特【憎惡者 / 外星人】": "Abomigant [Abomination / Alien]",
+            "口渴 【爬行者 / 牛奶怪】": "Thirsty [Crawler / Milk Freak]",
+            "埃爾默神父 【霰彈槍 / 神父】": "Father Elmer [Shotgun / Priest]",
+            "觀察者 【高個子】": "The Watcher [Tall One]",
+            "野獸 【貓貓 / 貓老太】": "The Beast [Kitty / Cat Lady]",
+            "海豚人": "Dolphin Man",
+            "伊戈爾【DJ / 創造者 / 毀滅者】": "Igor [DJ / Creator / Destroyer]",
+            "牢騷者【乞丐】": "The Grouch [Beggar]",
+            "公主【狗】": "Princess [Dog]",
+            "極速奔跑者": "Speed Runner",
+            "定位器": "Proxy-Locator",
+            "皇家漢堡": "Royal Burger",
+            "餅乾": "Cookie",
+            "啤酒桶": "Beer Keg",
+            "美乃滋": "Mayonnaise",
+            "橙色果凍": "Orange Jello",
+            "COSTCO速凍披薩": "Costco Frozen Pizza",
+            "機場的烈性酒": "Airport Jungle Juice",
+            "犀牛丸": "Rhino Pill",
+            "岩石": "The Rock",
+            "人造肉": "Lab-Grown Meat",
+            "沙袋": "Pocket Sand",
+            "巫毒娃娃": "The Baby",
+            "紐波特薄荷": "Newport Menthols",
+            "B-GONE蘇打水": "B-GONE Soda",
+            "40號紅色染劑": "Red 40 Vial",
+            "桶裝牛奶": "Milk Jug",
+            "貪婪之壺": "Pot of Greed",
+            "不死圖騰": "Deathward",
+            "邪惡的瓊克爾•卡特": "Evil Jonkler Cart",
+            "25克苯海拉明": "25 Gram Benadryl",
+            "巴爾幹激素": "Balkan Boost",
+            "遊戲狀態": "Game Status",
+            "未知": "Unknown",
+            "地圖": "Map",
+            "殺手": "Slasher",
+            "物品": "Item",
+            "生成物品": "Generated Item",
+            "生成物品: 無": "Generated Item: None",
+            "發電機狀態": "Generator Status",
+            "發電機": "Generator",
+            "發電機監控僅限非房主有效": "Generator monitoring works for non-hosts only",
+            "OSC 設定": "OSC Settings",
+            "啟用 OSC": "Enable OSC",
+            "錯誤：OSC 啟用失敗": "Error: Failed to Enable OSC",
+            "OSC 已啟用": "OSC Enabled",
+            "OSC 已停用": "OSC Disabled",
+            "顯示 OSC 日誌": "Show OSC Logs",
+            "埠": "Port",
+            "埠號:": "Port:",
+            "日誌監控": "Log Monitor",
+            "開始監控日誌": "Start Log Monitoring",
+            "載入失敗": "Failed to Load",
+            "錯誤：埠號無效或 OSC 不可用": "Error: Invalid Port or OSC Unavailable",
+            "[OSC] 傳送 SlasherID": "[OSC] Send SlasherID",
+            "[OSC] 傳送 GENERATOR1_FUEL": "[OSC] Send GENERATOR1_FUEL",
+            "[OSC] 傳送 GENERATOR2_FUEL": "[OSC] Send GENERATOR2_FUEL",
+            "[OSC] 傳送 GENERATOR1_BATTERY": "[OSC] Send GENERATOR1_BATTERY",
+            "[OSC] 傳送 GENERATOR2_BATTERY": "[OSC] Send GENERATOR2_BATTERY",
+        },
+        "ja_JP": {
+            "舊 SlashCo 總部": "旧SlashCo本部",
+            "馬龍斯農場": "マーロンズ農場",
+            "菲利普斯•書斯特伍德高中": "フィリップス・シュスタウッド高校",
+            "伊斯特伍德綜合醫院": "イーストウッド総合病院",
+            "德爾塔科研機構": "デルタ研究施設",
+            "巴巴布伊 【肌肉男 / 隱形怪】": "ババブーイ【筋肉男 / 透明モンスター】",
+            "席德 【手槍怪 / 餅乾怪】": "シド【ピストル怪 / クッキーモンスター】",
+            "特羅勒格巨魔【笑臉男 / 火柴人】": "トロレッグ・トロール【スマイル男 / スティックマン】",
+            "博格梅爾【機器人】": "ボーグメル【ロボット】",
+            "阿博米納特【憎惡者 / 外星人】": "アボミネート【忌まわしい者 / エイリアン】",
+            "口渴 【爬行者 / 牛奶怪】": "のどが渇いた【這い者 / ミルクモンスター】",
+            "埃爾默神父 【霰彈槍 / 神父】": "エルマー神父【ショットガン / 神父】",
+            "觀察者 【高個子】": "観察者【背高男】",
+            "野獸 【貓貓 / 貓老太】": "ビースト【ネコちゃん / ネコ婆】",
+            "海豚人": "イルカ人間",
+            "伊戈爾【DJ / 創造者 / 毀滅者】": "イゴール【DJ / 創造者 / 破壊者】",
+            "牢騷者【乞丐】": "ぐち男【乞食】",
+            "公主【狗】": "プリンセス【犬】",
+            "極速奔跑者": "超速ランナー",
+            "定位器": "ロケーター",
+            "皇家漢堡": "ロイヤルバーガー",
+            "餅乾": "クッキー",
+            "啤酒桶": "ビール樽",
+            "美乃滋": "マヨネーズ",
+            "橙色果凍": "オレンジゼリー",
+            "COSTCO速凍披薩": "COSTCO冷凍ピザ",
+            "機場的烈性酒": "空港の強い酒",
+            "犀牛丸": "サイの丸薬",
+            "岩石": "岩",
+            "人造肉": "人工肉",
+            "沙袋": "サンドバッグ",
+            "巫毒娃娃": "ブードゥー人形",
+            "紐波特薄荷": "ニューポートミント",
+            "B-GONE蘇打水": "B-GONEソーダ",
+            "40號紅色染劑": "赤色40号染料",
+            "桶裝牛奶": "ミルクの桶",
+            "貪婪之壺": "欲望の壺",
+            "不死圖騰": "不死のトーテム",
+            "邪惡的瓊克爾•卡特": "邪悪なジョンクル・カーター",
+            "25克苯海拉明": "25gジフェンヒドラミン",
+            "巴爾幹激素": "バルカンホルモン",
+            "遊戲狀態": "ゲーム状態",
+            "未知": "不明",
+            "地圖": "マップ",
+            "殺手": "スラッシャー",
+            "物品": "アイテム",
+            "生成物品": "生成アイテム",
+            "生成物品: 無": "生成アイテム：なし",
+            "發電機狀態": "発電機の状態",
+            "發電機": "発電機",
+            "發電機監控僅限非房主有效": "発電機の監視はホスト以外のみ有効",
+            "OSC 設定": "OSC設定",
+            "啟用 OSC": "OSCを有効化",
+            "錯誤：OSC 啟用失敗": "エラー：OSCの有効化に失敗しました",
+            "OSC 已啟用": "OSCが有効になりました",
+            "OSC 已停用": "OSCが無効になりました",
+            "顯示 OSC 日誌": "OSCログを表示",
+            "埠": "ポート",
+            "埠號:": "ポート番号：",
+            "日誌監控": "ログ監視",
+            "開始監控日誌": "ログ監視を開始",
+            "載入失敗": "読み込み失敗",
+            "錯誤：埠號無效或 OSC 不可用": "エラー：ポート番号が無効またはOSCが使用不可",
+            "[OSC] 傳送 SlasherID": "[OSC] SlasherIDを送信",
+            "[OSC] 傳送 GENERATOR1_FUEL": "[OSC] GENERATOR1_FUELを送信",
+            "[OSC] 傳送 GENERATOR2_FUEL": "[OSC] GENERATOR2_FUELを送信",
+            "[OSC] 傳送 GENERATOR1_BATTERY": "[OSC] GENERATOR1_BATTERYを送信",
+            "[OSC] 傳送 GENERATOR2_BATTERY": "[OSC] GENERATOR2_BATTERYを送信",
+        },
+    }
+
+    Locale = {
+        "950": "zh_TW",
+        "936": "zh_CN",
+        "932": "ja_JP",
+        "1252": "en_US",
+    }
+
+    ML = {}
+    Default = "en_US"
+    SysPlat = platform.system()
+
+    try:
+        if Lang is None:
+            if SysPlat == "Windows":
+                buffer = ctypes.create_unicode_buffer(85)
+                ctypes.windll.kernel32.GetUserDefaultLocaleName(buffer, len(buffer))
+                Lang = buffer.value.replace("-", "_")
+            elif SysPlat in ("Linux", "Darwin"):
+                Lang = os.environ.get("LANG", "").split(".")[0]
+            else:
+                locale.setlocale(locale.LC_ALL, "")
+                Lang = locale.getlocale()[1].replace("cp", "")
+    except Exception:
+        Lang = Default
+
+    ML = (
+        Word.get(Lang)
+        if isinstance(Lang, str) and Lang in Word
+        else Word.get(Locale.get(Lang)) if Lang in Locale else Word.get(Default)
+    )
+
+    return lambda text: ML.get(text, text)
+
+
+Transl = Language()
+
+# 地圖對應
+GAME_MAPS = {
+    "0": Transl("舊 SlashCo 總部"),
+    "SlashCoHQ": Transl("舊 SlashCo 總部"),
+    "1": Transl("馬龍斯農場"),
+    "MalonesFarmyard": Transl("馬龍斯農場"),
+    "2": Transl("菲利普斯•書斯特伍德高中"),
+    "PhilipsWestwoodHighSchool": Transl("菲利普斯•書斯特伍德高中"),
+    "3": Transl("伊斯特伍德綜合醫院"),
+    "EastwoodGeneralHospital": Transl("伊斯特伍德綜合醫院"),
+    "4": Transl("德爾塔科研機構"),
+    "ResearchFacilityDelta": Transl("德爾塔科研機構"),
+}
+
+# 殺手對應
+SLASHERS = {
+    0: {
+        "name": Transl("巴巴布伊 【肌肉男 / 隱形怪】"),
+        "icon": f"{ASSETS}/BABABOOEY.webp",
+    },
+    1: {
+        "name": Transl("席德 【手槍怪 / 餅乾怪】"),
+        "icon": f"{ASSETS}/SID.webp",
+    },
+    2: {
+        "name": Transl("特羅勒格巨魔【笑臉男 / 火柴人】"),
+        "icon": f"{ASSETS}/TROLLAG.webp",
+    },
+    3: {
+        "name": Transl("博格梅爾【機器人】"),
+        "icon": f"{ASSETS}/BORGMIRE.webp",
+    },
+    4: {
+        "name": Transl("阿博米納特【憎惡者 / 外星人】"),
+        "icon": f"{ASSETS}/ABOMIGNAT.webp",
+    },
+    5: {
+        "name": Transl("口渴 【爬行者 / 牛奶怪】"),
+        "icon": f"{ASSETS}/THIRSTY.webp",
+    },
+    6: {
+        "name": Transl("埃爾默神父 【霰彈槍 / 神父】"),
+        "icon": f"{ASSETS}/FATHER_ELMER.webp",
+    },
+    7: {
+        "name": Transl("觀察者 【高個子】"),
+        "icon": f"{ASSETS}/THE_WATCHER.webp",
+    },
+    8: {
+        "name": Transl("野獸 【貓貓 / 貓老太】"),
+        "icon": f"{ASSETS}/THE_BEAST.webp",
+    },
+    9: {
+        "name": Transl("海豚人"),
+        "icon": f"{ASSETS}/DOLPHINMAN.webp",
+    },
+    10: {
+        "name": Transl("伊戈爾【DJ / 創造者 / 毀滅者】"),
+        "icon": f"{ASSETS}/IGOR.webp",
+    },
+    11: {
+        "name": Transl("牢騷者【乞丐】"),
+        "icon": f"{ASSETS}/THE_GROUCH.webp",
+    },
+    12: {
+        "name": Transl("公主【狗】"),
+        "icon": f"{ASSETS}/PRINCESS.webp",
+    },
+    13: {
+        "name": Transl("極速奔跑者"),
+        "icon": f"{ASSETS}/SPEEDRUNNER.webp",
+    },
+}
+
+# 物品對應
+ITEMS = {
+    "Proxy-Locator": Transl("定位器"),
+    "Royal Burger": Transl("皇家漢堡"),
+    "Cookie": Transl("餅乾"),
+    "Beer Keg": Transl("啤酒桶"),
+    "Mayonnaise": Transl("美乃滋"),
+    "Orange Jello": Transl("橙色果凍"),
+    "Costco Frozen Pizza": Transl("COSTCO速凍披薩"),
+    "Airport Jungle Juice": Transl("機場的烈性酒"),
+    "Rhino Pill": Transl("犀牛丸"),
+    "The Rock": Transl("岩石"),
+    "Lab-Grown Meat": Transl("人造肉"),
+    "Pocket Sand": Transl("沙袋"),
+    "The Baby": Transl("巫毒娃娃"),
+    "Newport Menthols": Transl("紐波特薄荷"),
+    "B-GONE Soda": Transl("B-GONE蘇打水"),
+    "Red40": Transl("40號紅色染劑"),
+    "Red40 Vial": Transl("40號紅色染劑"),
+    "Milk Jug": Transl("桶裝牛奶"),
+    "Pot of Greed": Transl("貪婪之壺"),
+    "Deathward": Transl("不死圖騰"),
+    "Evil Jonkler Cart": Transl("邪惡的瓊克爾•卡特"),
+    "25 Gram Benadryl": Transl("25克苯海拉明"),
+    "Balkan Boost": Transl("巴爾幹激素"),
 }
 
 # 編譯物品解析正則
@@ -175,45 +431,6 @@ LOG_PATTERNS = (
         "generator",
     ),
 )
-
-
-def get_progress_color(value: int) -> str:
-    """獲取進度條顏色"""
-    for (min_val, max_val), color in PROGRESS_COLORS.items():
-        if min_val <= value <= max_val:
-            return color
-    return "#2c2c2c"  # 預設
-
-
-class ProgressBar(QProgressBar):
-    """進度條 - 減少樣式更新開銷"""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setMinimumHeight(25)
-        self.setTextVisible(True)
-        self.setRange(0, 100)
-        self._current_color = "#555555"
-        self._apply_style(self._current_color)
-
-    def setValue(self, value: int):
-        super().setValue(value)
-        # 只在顏色改變時更新樣式
-        new_color = get_progress_color(value)
-        if new_color != self._current_color:
-            self._current_color = new_color
-            self._apply_style(new_color)
-
-    def _apply_style(self, color: str):
-        self.setStyleSheet(
-            f"""
-            QProgressBar {{
-                border: 2px solid #3c3c3c; border-radius: 8px; background-color: #2c2c2c;
-                text-align: center; font-weight: bold; font-size: 12px; color: white;
-            }}
-            QProgressBar::chunk {{ background-color: {color}; border-radius: 6px; margin: 1px; }}
-        """
-        )
 
 
 def parse_items(items: str) -> str:
@@ -245,6 +462,44 @@ def parse_items(items: str) -> str:
             result.append(unmatched)
 
     return " / ".join(result)
+
+
+def get_progress_color(value: int) -> str:
+    """獲取進度條顏色"""
+    for (min_val, max_val), color in PROGRESS_COLORS.items():
+        if min_val <= value <= max_val:
+            return color
+    return "#2c2c2c"  # 預設
+
+
+class ProgressBar(QProgressBar):
+    """進度條 - 減少樣式更新開銷"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setMinimumHeight(25)
+        self.setTextVisible(True)
+        self.setRange(0, 100)
+        self._current_color = "#555555"
+        self._apply_style(self._current_color)
+
+    def setValue(self, value: int):
+        super().setValue(value)
+        new_color = get_progress_color(value)
+        if new_color != self._current_color:
+            self._current_color = new_color
+            self._apply_style(new_color)
+
+    def _apply_style(self, color: str):
+        self.setStyleSheet(
+            f"""
+            QProgressBar {{
+                border: 2px solid #3c3c3c; border-radius: 8px; background-color: #2c2c2c;
+                text-align: center; font-weight: bold; font-size: 12px; color: white;
+            }}
+            QProgressBar::chunk {{ background-color: {color}; border-radius: 6px; margin: 1px; }}
+        """
+        )
 
 
 class SlashcoSenseMainWindow(QMainWindow):
@@ -290,9 +545,8 @@ class SlashcoSenseMainWindow(QMainWindow):
         QTimer.singleShot(
             300,
             lambda: (
-                # 請求圖示
                 (
-                    lambda req: (
+                    lambda req: (  # 請求圖示
                         req.setAttribute(QNetworkRequest.Attribute.User, "icon"),
                         self.network_manager.get(req),
                     )
@@ -318,7 +572,7 @@ class SlashcoSenseMainWindow(QMainWindow):
         main_layout.setContentsMargins(15, 15, 15, 15)
 
         # 遊戲狀態群組
-        game_group = QGroupBox("遊戲狀態")
+        game_group = QGroupBox(Transl("遊戲狀態"))
         game_group.setFont(QFont("Microsoft YaHei", 12, QFont.Weight.Bold))
 
         # 修改為水平佈局，左邊是遊戲資訊，右邊是圖片
@@ -333,9 +587,9 @@ class SlashcoSenseMainWindow(QMainWindow):
         # 上方彈性空間 - 把內容推到中間
         game_layout.addStretch()
 
-        self.map_label = QLabel("地圖: 未知")
-        self.slasher_label = QLabel("殺手: 未知")
-        self.items_label = QLabel("生成物品: 無")
+        self.map_label = QLabel(Transl(f"{Transl("地圖")}: {Transl("未知")}"))
+        self.slasher_label = QLabel(Transl(f"{Transl("殺手")}: {Transl("未知")}"))
+        self.items_label = QLabel(Transl("生成物品: 無"))
 
         font = QFont("Microsoft YaHei", 11)
         for label in [self.map_label, self.slasher_label, self.items_label]:
@@ -361,7 +615,7 @@ class SlashcoSenseMainWindow(QMainWindow):
         self.image_label.setObjectName("imageDisplay")
         self.image_label.setFixedSize(200, 200)
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.image_label.setText("未知")
+        self.image_label.setText(Transl("未知"))
         self.image_label.setScaledContents(True)
 
         image_layout.addWidget(self.image_label)
@@ -371,7 +625,7 @@ class SlashcoSenseMainWindow(QMainWindow):
         game_main_layout.addWidget(image_widget, 0)  # 權重0，固定大小
 
         # 發電機狀態群組 - 直接建立，避免迴圈開銷
-        gen_group = QGroupBox("發電機狀態")
+        gen_group = QGroupBox(Transl("發電機狀態"))
         gen_group.setFont(QFont("Microsoft YaHei", 12, QFont.Weight.Bold))
         gen_layout = QVBoxLayout(gen_group)
         gen_layout.setSpacing(10)
@@ -379,15 +633,14 @@ class SlashcoSenseMainWindow(QMainWindow):
         # 發電機 1
         gen1_layout = QHBoxLayout()
         gen1_layout.setSpacing(10)
-        self.gen1_label = QLabel("發電機 1")
+        self.gen1_label = QLabel(f"{Transl("發電機")} 1")
         self.gen1_label.setMinimumWidth(20)
         self.gen1_label.setFont(QFont("Microsoft YaHei", 11, QFont.Weight.Bold))
         self.gen1_progress = ProgressBar()
         self.gen1_progress.setMinimumWidth(250)
         self.gen1_progress.setFont(QFont("Microsoft YaHei", 10))
-        self.gen1_battery = QLabel("電池: 🪫")
-        self.gen1_battery.setMinimumWidth(70)
-        self.gen1_battery.setFont(QFont("Microsoft YaHei", 12, QFont.Weight.Bold))
+        self.gen1_battery = QLabel("🪫")
+        self.gen1_battery.setFont(QFont("Microsoft YaHei", 20, QFont.Weight.Bold))
 
         gen1_layout.addWidget(self.gen1_label)
         gen1_layout.addWidget(self.gen1_progress)
@@ -396,15 +649,14 @@ class SlashcoSenseMainWindow(QMainWindow):
         # 發電機 2
         gen2_layout = QHBoxLayout()
         gen2_layout.setSpacing(10)
-        self.gen2_label = QLabel("發電機 2")
+        self.gen2_label = QLabel(f"{Transl("發電機")} 2")
         self.gen2_label.setMinimumWidth(20)
         self.gen2_label.setFont(QFont("Microsoft YaHei", 11, QFont.Weight.Bold))
         self.gen2_progress = ProgressBar()
         self.gen2_progress.setMinimumWidth(250)
         self.gen2_progress.setFont(QFont("Microsoft YaHei", 10))
-        self.gen2_battery = QLabel("電池: 🪫")
-        self.gen2_battery.setMinimumWidth(70)
-        self.gen2_battery.setFont(QFont("Microsoft YaHei", 12, QFont.Weight.Bold))
+        self.gen2_battery = QLabel("🪫")
+        self.gen2_battery.setFont(QFont("Microsoft YaHei", 20, QFont.Weight.Bold))
 
         gen2_layout.addWidget(self.gen2_label)
         gen2_layout.addWidget(self.gen2_progress)
@@ -418,22 +670,22 @@ class SlashcoSenseMainWindow(QMainWindow):
         gen_layout.addWidget(gen_widget1)
         gen_layout.addWidget(gen_widget2)
 
-        warning = QLabel("發電機監控僅限非房主有效")
+        warning = QLabel(Transl("發電機監控僅限非房主有效"))
         warning.setObjectName("warningText")
         warning.setAlignment(Qt.AlignmentFlag.AlignCenter)
         gen_layout.addWidget(warning)
 
         # OSC 設定群組
-        osc_group = QGroupBox("OSC 設定")
+        osc_group = QGroupBox(Transl("OSC 設定"))
         osc_group.setFont(QFont("Microsoft YaHei", 12, QFont.Weight.Bold))
         osc_layout = QHBoxLayout(osc_group)
         osc_layout.setSpacing(15)
 
-        self.osc_enabled_checkbox = QCheckBox("啟用 OSC")
+        self.osc_enabled_checkbox = QCheckBox(Transl("啟用 OSC"))
         self.osc_enabled_checkbox.toggled.connect(self._toggle_osc)
         self.osc_enabled_checkbox.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
-        self.osc_log_enabled_checkbox = QCheckBox("顯示 OSC 日誌")
+        self.osc_log_enabled_checkbox = QCheckBox(Transl("顯示 OSC 日誌"))
         self.osc_log_enabled_checkbox.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.osc_log_enabled_checkbox.setChecked(True)
 
@@ -443,11 +695,11 @@ class SlashcoSenseMainWindow(QMainWindow):
         osc_layout.addWidget(self.osc_enabled_checkbox)
         osc_layout.addWidget(self.osc_log_enabled_checkbox)
         osc_layout.addStretch()
-        osc_layout.addWidget(QLabel("埠號:"))
+        osc_layout.addWidget(QLabel(Transl("埠號:")))
         osc_layout.addWidget(self.port_input)
 
         # 日誌顯示群組
-        log_group = QGroupBox("即時日誌")
+        log_group = QGroupBox(Transl("日誌監控"))
         log_group.setFont(QFont("Microsoft YaHei", 12, QFont.Weight.Bold))
         log_layout = QVBoxLayout(log_group)
 
@@ -573,10 +825,9 @@ class SlashcoSenseMainWindow(QMainWindow):
                 # radius 與 QLabel 的 border-radius 相同
                 self.image_label.setPixmap(self._rounded_pixmap(scaled_pixmap, radius=8))
             elif url != "icon":
-                self.image_label.setText("格式錯誤")
+                self.image_label.setText(Transl("載入失敗"))
         elif url != "icon":
-            # 載入失敗
-            self.image_label.setText("載入失敗")
+            self.image_label.setText(Transl("載入失敗"))
 
         reply.deleteLater()
 
@@ -618,7 +869,7 @@ class SlashcoSenseMainWindow(QMainWindow):
             )
         else:
             self.image_label.clear()
-            self.image_label.setText("未知")
+            self.image_label.setText(Transl("未知"))
             self.image_label.setStyleSheet("")
 
     def _toggle_osc(self, enabled: bool):
@@ -629,17 +880,17 @@ class SlashcoSenseMainWindow(QMainWindow):
                 if 1 <= port <= 65535 and UDP_CLIENT_AVAILABLE:
                     self.osc_client = udp_client.SimpleUDPClient("127.0.0.1", port)
                     self.osc_enabled = True
-                    self.log_message.emit(f"OSC 已啟用（埠：{port}）")
+                    self.log_message.emit(f"{Transl("OSC 已啟用")}（{Transl("埠")}：{port}）")
                 else:
-                    self.log_message.emit("錯誤：埠號無效或OSC不可用")
+                    self.log_message.emit(Transl("錯誤：埠號無效或 OSC 不可用"))
                     self.osc_enabled_checkbox.setChecked(False)
             except (ValueError, Exception):
-                self.log_message.emit("錯誤：OSC 啟用失敗")
+                self.log_message.emit(Transl("錯誤：OSC 啟用失敗"))
                 self.osc_enabled_checkbox.setChecked(False)
         else:
             self.osc_client = None
             self.osc_enabled = False
-            self.log_message.emit("OSC 已停用")
+            self.log_message.emit(Transl("OSC 已停用"))
 
     def _send_osc(self, param: str, value: Any) -> bool:
         """快速傳送OSC引數"""
@@ -675,7 +926,7 @@ class SlashcoSenseMainWindow(QMainWindow):
             if latest_file != self.current_log_file:
                 self.current_log_file = latest_file
                 self.file_position = 0
-                self.log_message.emit(f"開始監控日誌: {latest_file.name}")
+                self.log_message.emit(f"{Transl("開始監控日誌")}: {latest_file.name}")
 
             # 讀取新行
             if self.current_log_file.exists():
@@ -718,26 +969,32 @@ class SlashcoSenseMainWindow(QMainWindow):
                 pass
 
             if data_type == "map":
-                map_val = match.group(2).strip()
-                map_name = GAME_MAPS.get(map_val, map_val)
-                self.map_label.setText(f"地圖: \n{map_name}")
-                log_parts.append(f"地圖: {map_name}")
                 new_game_info = True
 
+                map_val = match.group(2).strip()
+                map_name = GAME_MAPS.get(map_val, map_val)
+
+                info = Transl("地圖")
+                self.map_label.setText(f"{info}: \n{map_name}")
+                log_parts.append(f"{info}: {map_name}")
+
             elif data_type == "slasher":
+                new_game_info = True
+
                 slasher_id = int(match.group(2))
 
                 # 獲取殺手對應
                 slasher_data = SLASHERS.get(
-                    slasher_id, {"name": f"未知殺手({slasher_id})", "icon": None}
+                    slasher_id,
+                    {"name": f"{Transl("未知")}{Transl("殺手")}({slasher_id})", "icon": None},
                 )
 
                 name = slasher_data["name"]
                 icon = slasher_data["icon"]
 
-                self.slasher_label.setText(f"殺手: \n{name}")
-                log_parts.append(f"殺手: {name}")
-                new_game_info = True
+                info = Transl("殺手")
+                self.slasher_label.setText(f"{info}: \n{name}")
+                log_parts.append(f"{info}: {name}")
 
                 # 更新圖片
                 self._set_image_url(icon if icon else "")
@@ -747,12 +1004,12 @@ class SlashcoSenseMainWindow(QMainWindow):
                     self._send_osc("SlasherID", slasher_id)
                     and self.osc_log_enabled_checkbox.isChecked()
                 ):
-                    self.log_message.emit(f"[OSC] 傳送 SlasherID: {slasher_id}")
+                    self.log_message.emit(f"{Transl("[OSC] 傳送 SlasherID")}: {slasher_id}")
 
             elif data_type == "items":
                 items = parse_items(match.group(2).strip())
-                self.items_label.setText(f"生成物品: \n{items}")
-                log_parts.append(f"物品: {items}")
+                self.items_label.setText(f"{Transl("生成物品")}: \n{items}")
+                log_parts.append(f"{Transl("物品")}: {items}")
                 new_game_info = True
 
             elif data_type == "generator" and not self.reset_mark:  # 重置標記時禁止更新
@@ -786,11 +1043,11 @@ class SlashcoSenseMainWindow(QMainWindow):
 
         # 重置發電機1
         self.gen1_progress.setValue(0)
-        self.gen1_battery.setText("電池: 🪫")
+        self.gen1_battery.setText("🪫")
 
         # 重置發電機2
         self.gen2_progress.setValue(0)
-        self.gen2_battery.setText("電池: 🪫")
+        self.gen2_battery.setText("🪫")
 
         # 直接傳送OSC訊息
         if self.osc_enabled:
@@ -813,18 +1070,18 @@ class SlashcoSenseMainWindow(QMainWindow):
                         self._send_osc("GENERATOR1_FUEL", filled)
                         and self.osc_log_enabled_checkbox.isChecked()
                     ):
-                        self.log_message.emit(f"[OSC] 傳送 GENERATOR1_FUEL: {filled}")
+                        self.log_message.emit(f"{Transl("[OSC] 傳送 GENERATOR1_FUEL")}: {filled}")
                 elif gen_name == "generator2":
                     self.gen2_progress.setValue(progress)
                     if (
                         self._send_osc("GENERATOR2_FUEL", filled)
                         and self.osc_log_enabled_checkbox.isChecked()
                     ):
-                        self.log_message.emit(f"[OSC] 傳送 GENERATOR2_FUEL: {filled}")
+                        self.log_message.emit(f"{Transl("[OSC] 傳送 GENERATOR2_FUEL")}: {filled}")
 
             elif var_type == "HAS_BATTERY":
                 has_battery = new_value.lower() == "true"
-                battery_text = "電池: 🔋" if has_battery else "電池: 🪫"
+                battery_text = "🔋" if has_battery else "🪫"
                 battery_value = 1 if has_battery else 0
 
                 if gen_name == "generator1":
@@ -833,14 +1090,18 @@ class SlashcoSenseMainWindow(QMainWindow):
                         self._send_osc("GENERATOR1_BATTERY", battery_value)
                         and self.osc_log_enabled_checkbox.isChecked()
                     ):
-                        self.log_message.emit(f"[OSC] 傳送 GENERATOR1_BATTERY: {battery_value}")
+                        self.log_message.emit(
+                            f"{Transl("[OSC] 傳送 GENERATOR1_BATTERY")}: {battery_value}"
+                        )
                 elif gen_name == "generator2":
                     self.gen2_battery.setText(battery_text)
                     if (
                         self._send_osc("GENERATOR2_BATTERY", battery_value)
                         and self.osc_log_enabled_checkbox.isChecked()
                     ):
-                        self.log_message.emit(f"[OSC] 傳送 GENERATOR2_BATTERY: {battery_value}")
+                        self.log_message.emit(
+                            f"{Transl("[OSC] 傳送 GENERATOR2_BATTERY")}: {battery_value}"
+                        )
         except ValueError:
             pass
 
