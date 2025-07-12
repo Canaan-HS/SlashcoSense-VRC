@@ -138,7 +138,7 @@ def Language(Lang=None):
             "德爾塔科研機構": "Research Facility Delta",
             "巴巴布伊 【肌肉男 / 隱形怪】": "Bababooey [Muscle Man / Invisible Freak]",
             "席德 【手槍怪 / 餅乾怪】": "Cid [Pistol Freak / Cookie Monster]",
-            "特羅勒格巨魔【笑臉男 / 火柴人】": "Trollag [Smiley / Stickman]",
+            "特羅勒格巨魔【笑臉男 / 火柴人】": "Trollge [Smiley / Stickman]",
             "博格梅爾【機器人】": "Borgmire [Robot]",
             "阿博米納特【憎惡者 / 外星人】": "Abomigant [Abomination / Alien]",
             "口渴 【爬行者 / 牛奶怪】": "Thirsty [Crawler / Milk Freak]",
@@ -334,7 +334,7 @@ SLASHERS = {
     },
     2: {
         "name": Transl("特羅勒格巨魔【笑臉男 / 火柴人】"),
-        "icon": f"{ASSETS}/TROLLAG.webp",
+        "icon": f"{ASSETS}/TROLLGE.webp",
     },
     3: {
         "name": Transl("博格梅爾【機器人】"),
@@ -523,7 +523,7 @@ class SlashcoSenseMainWindow(QMainWindow):
 
         self.info_cache = ""  # 資訊快取
         self.reset_mark = False  # 重置標記
-        self.record_timestamp = {}  # 紀錄每種型別的最新時間戳
+        self.process_cache = {}  # 處理快取
 
         self.gen1_progress: Optional[ProgressBar] = None
         self.gen1_label: Optional[QLabel] = None
@@ -554,7 +554,7 @@ class SlashcoSenseMainWindow(QMainWindow):
                 )(QNetworkRequest(QUrl(WINDOWS_ICON_URL))),
                 # 啟動監控
                 setattr(self, "log_timer", QTimer()),
-                self.log_timer.timeout.connect(self._monitor_logs),
+                self.log_timer.timeout.connect(self._monitor_process_logs),
                 self.log_timer.start(LOG_UPDATE_INTERVAL),
                 self.log_message.connect(self._append_log_message),
             ),
@@ -921,8 +921,8 @@ class SlashcoSenseMainWindow(QMainWindow):
         scrollbar = self.log_display.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
 
-    def _monitor_logs(self):
-        """日誌監控"""
+    def _monitor_process_logs(self):
+        """日誌監控 處理解析日誌"""
         try:
             # 檢查新檔案
             if not self.log_dir.exists():
@@ -946,38 +946,50 @@ class SlashcoSenseMainWindow(QMainWindow):
                     self.file_position = file.tell()
 
                 if new_content:
-                    for line in reversed(new_content.splitlines()):
-                        if line.strip():
-                            self._process_log_line(line.strip())
+                    for line in new_content.splitlines():
+                        strip_line = line.strip()
+                        if strip_line:
+                            for pattern, data_type in LOG_PATTERNS:
+                                match = pattern.search(strip_line)
+
+                                if not match:
+                                    continue
+
+                                try:
+                                    # 根據相同資料型別, 篩選掉舊的時間戳
+                                    search_key = (
+                                        match.group(2) if data_type == "generator" else data_type
+                                    )
+                                    log_timestamp = match.group(1)
+                                    [cache_timestamp, match] = self.process_cache.get(
+                                        search_key, [log_timestamp, match]
+                                    )
+
+                                    if log_timestamp < cache_timestamp:
+                                        continue
+
+                                    self.process_cache[search_key] = [log_timestamp, match]
+                                except (ValueError, IndexError):
+                                    continue
+                    self._update_ui()
         except Exception:
             pass
 
-    def _process_log_line(self, line: str):
-        """最佳化後的日誌處理"""
+    def _update_ui(self):
+        """解析日誌 更新 UI"""
+
+        standard = ""
         log_parts = []
         new_game_info = False
 
-        for pattern, data_type in LOG_PATTERNS:
-            match = pattern.search(line)
-
-            if not match:
+        for data_type, [timestamp, match] in self.process_cache.items():
+            # ! 使用 map 時的時間戳，作為標準篩除舊數據 (測試)
+            if timestamp < standard:
                 continue
-
-            try:
-                # 根據相同資料型別, 篩選掉舊的時間戳
-                search_key = match.group(2) if data_type == "generator" else data_type
-                log_timestamp = match.group(1)
-                record_timestamp = self.record_timestamp.get(search_key, log_timestamp)
-
-                if log_timestamp < record_timestamp:
-                    continue
-
-                self.record_timestamp[search_key] = log_timestamp
-            except (ValueError, IndexError):
-                pass
 
             if data_type == "map":
                 new_game_info = True
+                standard = timestamp
 
                 map_val = match.group(2).strip()
                 map_name = GAME_MAPS.get(map_val, map_val)
@@ -987,7 +999,6 @@ class SlashcoSenseMainWindow(QMainWindow):
 
                 if map_name not in self.info_cache:
                     self.map_label.setText(f"{info}: \n{map_name}")
-
             elif data_type == "slasher":
                 new_game_info = True
 
@@ -1009,9 +1020,7 @@ class SlashcoSenseMainWindow(QMainWindow):
                     continue
 
                 self.slasher_label.setText(f"{info}: \n{name}")
-
-                # 更新圖片
-                self._set_image_url(icon if icon else "")
+                self._set_image_url(icon if icon else "")  # 更新圖片
 
                 # 直接傳送OSC
                 if (
