@@ -979,7 +979,7 @@ class SlashcoSenseMainWindow(QMainWindow):
         """解析日誌 更新 UI"""
 
         standard = ""
-        log_parts = []
+        message_box = {}
         new_game_info = False
 
         for data_type, [timestamp, match] in self.process_cache.items():
@@ -995,7 +995,7 @@ class SlashcoSenseMainWindow(QMainWindow):
                 map_name = GAME_MAPS.get(map_val, map_val)
 
                 info = Transl("地圖")
-                log_parts.append(f"{info}: {map_name}")
+                message_box[data_type] = f"{info}: {map_name}"
 
                 if map_name not in self.info_cache:
                     self.map_label.setText(f"{info}: \n{map_name}")
@@ -1014,7 +1014,7 @@ class SlashcoSenseMainWindow(QMainWindow):
                 icon = slasher_data["icon"]
 
                 info = Transl("殺手")
-                log_parts.append(f"{info}: {name}")
+                message_box[data_type] = f"{info}: {name}"
 
                 if name in self.info_cache:
                     continue
@@ -1032,18 +1032,23 @@ class SlashcoSenseMainWindow(QMainWindow):
             elif data_type == "items":
                 new_game_info = True
                 items = parse_items(match.group(2).strip())
-                log_parts.append(f"{Transl('物品')}: {items}")
+                message_box[data_type] = f"{Transl('物品')}: {items}"
 
                 if items not in self.info_cache:
                     self.items_label.setText(f"{Transl('生成物品')}: \n{items}")
 
-            elif data_type == "generator" and not self.reset_mark:  # 重置標記時禁止更新
+            elif "generator" in data_type and not self.reset_mark:  # 重置標記時禁止更新
                 _, gen_name, var_type, _, _, new_value = match.groups()
                 self._update_generator(gen_name, var_type, new_value)
-                log_parts.append(f"{gen_name} {var_type}: {new_value}")
+                message_box[data_type] = f"{gen_name} {var_type}: {new_value}"
 
-        if log_parts:
-            message = " | ".join(log_parts)
+        for keys in [["map", "slasher", "items"], ["generator1"], ["generator2"]]:
+            message = [message_box[key] for key in keys if key in message_box]
+
+            if not message:
+                continue
+
+            message = " | ".join(message)
 
             if new_game_info:
                 if message == self.info_cache:
@@ -1054,7 +1059,6 @@ class SlashcoSenseMainWindow(QMainWindow):
                     # 新的遊戲資訊 = 新遊戲開始
                     self.reset_mark = False
                     self.info_cache = message
-
                 self._reset_generators()  # 有新的遊戲資訊時 = 開始 或 結束，都要重置
 
             # 重置狀態下禁止傳送日誌
