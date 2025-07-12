@@ -961,7 +961,7 @@ class SlashcoSenseMainWindow(QMainWindow):
                                         match.group(2) if data_type == "generator" else data_type
                                     )
                                     log_timestamp = match.group(1)
-                                    [cache_timestamp, match] = self.process_cache.get(
+                                    [cache_timestamp, _] = self.process_cache.get(
                                         search_key, [log_timestamp, match]
                                     )
 
