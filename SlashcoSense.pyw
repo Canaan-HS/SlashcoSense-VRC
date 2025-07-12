@@ -525,7 +525,9 @@ class SlashcoSenseMainWindow(QMainWindow):
         self.network_manager = QNetworkAccessManager()
         self.network_manager.finished.connect(self._on_image_loaded)
 
-        self.info_cache = ""  # 資訊快取
+        self.session_key = ""
+        self.standard_timestamp = ""
+
         self.reset_mark = False  # 重置標記
         self.process_cache = {}  # 處理快取
 
@@ -965,14 +967,14 @@ class SlashcoSenseMainWindow(QMainWindow):
                                         match.group(2) if data_type == "generator" else data_type
                                     )
                                     log_timestamp = match.group(1)
-                                    [cache_timestamp, _] = self.process_cache.get(
-                                        search_key, [log_timestamp, match]
-                                    )
+                                    cache_timestamp = self.process_cache.get(
+                                        search_key, match
+                                    ).group(1)
 
                                     if log_timestamp < cache_timestamp:
                                         continue
 
-                                    self.process_cache[search_key] = [log_timestamp, match]
+                                    self.process_cache[search_key] = match
                                 except (ValueError, IndexError):
                                     continue
                     self._update_ui()
@@ -982,89 +984,82 @@ class SlashcoSenseMainWindow(QMainWindow):
     def _update_ui(self):
         """解析日誌 更新 UI"""
 
-        reset_time = ""
-        standard_time = ""
-        message_box = {}
+        # 處理 地圖, 殺手, 物品, UI
+        map_data = self.process_cache.pop("map", None)
+        slasher_data = self.process_cache.pop("slasher", None)
+        items_data = self.process_cache.pop("items", None)
 
-        for data_type, [timestamp, match] in self.process_cache.items():
-            if timestamp < standard_time:
-                continue
+        if map_data and slasher_data and items_data:
+            timestamp = max(  # 雖然基本都是一樣的, 但為了安全, 這樣寫
+                map_data.group(1), slasher_data.group(1), items_data.group(1)
+            )
 
-            if data_type == "map":
-                standard_time = timestamp
+            if timestamp > self.standard_timestamp:
+                self.reset_mark = False
+                self.standard_timestamp = timestamp
 
-                map_val = match.group(2).strip()
+                # 獲取地圖資訊
+                map_val = map_data.group(2).strip()
                 map_name = GAME_MAPS.get(map_val, map_val)
+                map_info = Transl("地圖")
 
-                info = Transl("地圖")
-                message_box[data_type] = f"{info}: {map_name}"
-
-                if map_name not in self.info_cache:
-                    self.map_label.setText(f"{info}: \n{map_name}")
-            elif data_type == "slasher":
-                slasher_id = int(match.group(2))
-
-                # 獲取殺手對應
+                # 獲取殺手資訊
+                slasher_id = int(slasher_data.group(2))
                 slasher_data = SLASHERS.get(
                     slasher_id,
                     {"name": f"{Transl('未知')}{Transl('殺手')}({slasher_id})", "icon": None},
                 )
+                slasher_name = slasher_data["name"]
+                slasher_icon = slasher_data["icon"]
+                slasher_info = Transl("殺手")
 
-                name = slasher_data["name"]
-                icon = slasher_data["icon"]
+                # 獲取物品資訊
+                items = parse_items(items_data.group(2).strip())
 
-                info = Transl("殺手")
-                message_box[data_type] = f"{info}: {name}"
+                # 更新 UI
+                if map_name not in self.session_key:
+                    self.map_label.setText(f"{map_info}: \n{map_name}")
+                if slasher_name not in self.session_key:
+                    self.slasher_label.setText(f"{slasher_info}: \n{slasher_name}")
+                    self._set_image_url(slasher_icon if slasher_icon else "")  # 更新圖片
 
-                if name in self.info_cache:
-                    continue
-
-                self.slasher_label.setText(f"{info}: \n{name}")
-                self._set_image_url(icon if icon else "")  # 更新圖片
-
-                # 直接傳送OSC
-                if (
-                    self._send_osc("SlasherID", slasher_id)
-                    and self.osc_log_enabled_checkbox.isChecked()
-                ):
-                    self.log_message.emit(f"{Transl('[OSC] 傳送 SlasherID')}: {slasher_id}")
-            elif data_type == "items":
-                items = parse_items(match.group(2).strip())
-                message_box[data_type] = f"{Transl('物品')}: {items}"
-
-                if items not in self.info_cache:
+                    # 直接傳送OSC
+                    if (
+                        self._send_osc("SlasherID", slasher_id)
+                        and self.osc_log_enabled_checkbox.isChecked()
+                    ):
+                        self.log_message.emit(f"{Transl('[OSC] 傳送 SlasherID')}: {slasher_id}")
+                if items not in self.session_key:
                     self.items_label.setText(f"{Transl('生成物品')}: \n{items}")
-            elif "generator" in data_type and not self.reset_mark:  # 重置標記時禁止更新
-                _, gen_name, var_type, _, _, new_value = match.groups()
+
+                self.session_key = " | ".join(
+                    [
+                        f"{map_info}: {map_name}",
+                        f"{slasher_info}: {slasher_name}",
+                        f"{Transl('物品')}: {items}",
+                    ]
+                )
+
+                self.log_message.emit(self.session_key)  # 傳送日誌
+
+        # 處理發電機 UI
+        for generator_data in [
+            self.process_cache.pop("generator1", None),
+            self.process_cache.pop("generator2", None),
+        ]:
+            if generator_data and not self.reset_mark:
+                timestamp, gen_name, var_type, _, _, new_value = generator_data.groups()
                 self._update_generator(gen_name, var_type, new_value)
-                message_box[data_type] = f"{gen_name} {var_type}: {new_value}"
-            elif data_type == "reset":
-                reset_time = timestamp
+                self.log_message.emit(f"{gen_name} {var_type}: {new_value}")  # 傳送日誌
 
-        for index, keys in enumerate([["map", "slasher", "items"], ["generator1"], ["generator2"]]):
-            message = [message_box[key] for key in keys if key in message_box]
-
-            if not message:
-                continue
-
-            message = " | ".join(message)
-
-            if index == 0 and reset_time > standard_time:
-                if message == self.info_cache:
-                    # 重複的遊戲資訊 = 遊戲結束
-                    if not self.reset_mark:
-                        self.reset_mark = True
-                else:
-                    # 新的遊戲資訊 = 新遊戲開始
-                    self.reset_mark = False
-                    self.info_cache = message
+        # 處理重置
+        reset = self.process_cache.pop("reset", None)
+        if reset:
+            timestamp = reset.group(1)
+            if timestamp >= self.standard_timestamp:
+                self.reset_mark = True
                 self._reset_generators()
-
-            # 重置狀態下禁止傳送日誌
-            if self.reset_mark:
-                return
-
-            self.log_message.emit(message)
+                self.log_message.emit("Generators Reset")  # 傳送日誌
 
     def _reset_generators(self):
         """重置所有發電機狀態 (不透過 _update_generator 更新, 減少效能開銷)"""
