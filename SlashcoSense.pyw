@@ -1049,14 +1049,15 @@ class SlashcoSenseMainWindow(QMainWindow):
         ]:
             if generator_data and not self.reset_mark:
                 timestamp, gen_name, var_type, _, _, new_value = generator_data.groups()
-                self._update_generator(gen_name, var_type, new_value)
-                self.log_message.emit(f"{gen_name} {var_type}: {new_value}")  # 傳送日誌
+                if timestamp > self.standard_timestamp:
+                    self._update_generator(gen_name, var_type, new_value)
+                    self.log_message.emit(f"{gen_name} {var_type}: {new_value}")  # 傳送日誌
 
         # 處理重置
         reset = self.process_cache.pop("reset", None)
         if reset:
             timestamp = reset.group(1)
-            if timestamp >= self.standard_timestamp:
+            if timestamp > self.standard_timestamp:
                 self.reset_mark = True
                 self._reset_generators()
                 self.log_message.emit("Generators Reset")  # 傳送日誌
