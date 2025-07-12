@@ -394,6 +394,7 @@ ITEMS = {
     "Airport Jungle Juice": Transl("機場的烈性酒"),
     "Rhino Pill": Transl("犀牛丸"),
     "The Rock": Transl("岩石"),
+    "LabMeat": Transl("人造肉"),
     "Lab-Grown Meat": Transl("人造肉"),
     "Pocket Sand": Transl("沙袋"),
     "The Baby": Transl("巫毒娃娃"),
