@@ -980,15 +980,12 @@ class SlashcoSenseMainWindow(QMainWindow):
 
         standard = ""
         message_box = {}
-        new_game_info = False
 
         for data_type, [timestamp, match] in self.process_cache.items():
-            # ! 使用 map 時的時間戳，作為標準篩除舊數據 (測試)
             if timestamp < standard:
                 continue
 
             if data_type == "map":
-                new_game_info = True
                 standard = timestamp
 
                 map_val = match.group(2).strip()
@@ -1000,8 +997,6 @@ class SlashcoSenseMainWindow(QMainWindow):
                 if map_name not in self.info_cache:
                     self.map_label.setText(f"{info}: \n{map_name}")
             elif data_type == "slasher":
-                new_game_info = True
-
                 slasher_id = int(match.group(2))
 
                 # 獲取殺手對應
@@ -1030,7 +1025,6 @@ class SlashcoSenseMainWindow(QMainWindow):
                     self.log_message.emit(f"{Transl('[OSC] 傳送 SlasherID')}: {slasher_id}")
 
             elif data_type == "items":
-                new_game_info = True
                 items = parse_items(match.group(2).strip())
                 message_box[data_type] = f"{Transl('物品')}: {items}"
 
@@ -1042,7 +1036,7 @@ class SlashcoSenseMainWindow(QMainWindow):
                 self._update_generator(gen_name, var_type, new_value)
                 message_box[data_type] = f"{gen_name} {var_type}: {new_value}"
 
-        for keys in [["map", "slasher", "items"], ["generator1"], ["generator2"]]:
+        for index, keys in enumerate([["map", "slasher", "items"], ["generator1"], ["generator2"]]):
             message = [message_box[key] for key in keys if key in message_box]
 
             if not message:
@@ -1050,16 +1044,16 @@ class SlashcoSenseMainWindow(QMainWindow):
 
             message = " | ".join(message)
 
-            if new_game_info:
+            if index == 0:
                 if message == self.info_cache:
                     # 重複的遊戲資訊 = 遊戲結束，執行重置邏輯
                     if not self.reset_mark:
                         self.reset_mark = True
+                    self._reset_generators()
                 else:
                     # 新的遊戲資訊 = 新遊戲開始
                     self.reset_mark = False
                     self.info_cache = message
-                self._reset_generators()  # 有新的遊戲資訊時 = 開始 或 結束，都要重置
 
             # 重置狀態下禁止傳送日誌
             if self.reset_mark:
