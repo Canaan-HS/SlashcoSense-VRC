@@ -431,6 +431,10 @@ LOG_PATTERNS = (
         ),
         "generator",
     ),
+    (
+        re.compile(r"(\d{4}\.\d{2}\.\d{2} \d{2}:\d{2}:\d{2}).*?Generators reset(?: again)?\."),
+        "reset",
+    ),
 )
 
 
@@ -978,15 +982,16 @@ class SlashcoSenseMainWindow(QMainWindow):
     def _update_ui(self):
         """解析日誌 更新 UI"""
 
-        standard = ""
+        reset_time = ""
+        standard_time = ""
         message_box = {}
 
         for data_type, [timestamp, match] in self.process_cache.items():
-            if timestamp < standard:
+            if timestamp < standard_time:
                 continue
 
             if data_type == "map":
-                standard = timestamp
+                standard_time = timestamp
 
                 map_val = match.group(2).strip()
                 map_name = GAME_MAPS.get(map_val, map_val)
@@ -1023,18 +1028,18 @@ class SlashcoSenseMainWindow(QMainWindow):
                     and self.osc_log_enabled_checkbox.isChecked()
                 ):
                     self.log_message.emit(f"{Transl('[OSC] 傳送 SlasherID')}: {slasher_id}")
-
             elif data_type == "items":
                 items = parse_items(match.group(2).strip())
                 message_box[data_type] = f"{Transl('物品')}: {items}"
 
                 if items not in self.info_cache:
                     self.items_label.setText(f"{Transl('生成物品')}: \n{items}")
-
             elif "generator" in data_type and not self.reset_mark:  # 重置標記時禁止更新
                 _, gen_name, var_type, _, _, new_value = match.groups()
                 self._update_generator(gen_name, var_type, new_value)
                 message_box[data_type] = f"{gen_name} {var_type}: {new_value}"
+            elif data_type == "reset":
+                reset_time = timestamp
 
         for index, keys in enumerate([["map", "slasher", "items"], ["generator1"], ["generator2"]]):
             message = [message_box[key] for key in keys if key in message_box]
@@ -1044,16 +1049,16 @@ class SlashcoSenseMainWindow(QMainWindow):
 
             message = " | ".join(message)
 
-            if index == 0:
+            if index == 0 and reset_time > standard_time:
                 if message == self.info_cache:
-                    # 重複的遊戲資訊 = 遊戲結束，執行重置邏輯
+                    # 重複的遊戲資訊 = 遊戲結束
                     if not self.reset_mark:
                         self.reset_mark = True
-                    self._reset_generators()
                 else:
                     # 新的遊戲資訊 = 新遊戲開始
                     self.reset_mark = False
                     self.info_cache = message
+                self._reset_generators()
 
             # 重置狀態下禁止傳送日誌
             if self.reset_mark:
