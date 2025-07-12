@@ -39,7 +39,7 @@ except ImportError:
 if TYPE_CHECKING:
     from pythonosc.udp_client import SimpleUDPClient
 
-# 資源 URL
+# 資源 URL (如果下載完整項目，可以改成本地讀取 Path(__file__).parent / "IMG")
 ASSETS = "https://github.com/Canaan-HS/SlashcoSense-VRC/raw/refs/heads/main/IMG"
 
 DEFAULT_OSC_PORT = 9000  # 預設埠號
@@ -548,7 +548,7 @@ class SlashcoSenseMainWindow(QMainWindow):
             lambda: (
                 (
                     lambda req: (  # 請求圖示
-                        req.setAttribute(QNetworkRequest.Attribute.User, "icon"),
+                        req.setAttribute(QNetworkRequest.Attribute.User, WINDOWS_ICON_URL),
                         self.network_manager.get(req),
                     )
                 )(QNetworkRequest(QUrl(WINDOWS_ICON_URL))),
@@ -776,59 +776,68 @@ class SlashcoSenseMainWindow(QMainWindow):
 
     def _on_image_loaded(self, reply: QNetworkReply):
         """圖片載入完成的回撥"""
+
         url = reply.request().attribute(QNetworkRequest.Attribute.User)
         self.image_label.setStyleSheet("")  # 恢復原本樣式
 
-        if reply.error() == QNetworkReply.NetworkError.NoError:
-            pixmap = QPixmap()
+        is_local = "http" not in url and Path(url).is_file()
+        pixmap = QPixmap()
+        loaded = False
+
+        if is_local:
+            loaded = pixmap.load(url)
+        elif reply.error() == QNetworkReply.NetworkError.NoError:
             image_data = reply.readAll()
+            loaded = pixmap.loadFromData(image_data)
 
-            if url == "icon" and pixmap.loadFromData(image_data):  # 載入圖示
-                # 裁出圖片中心的正方形區域
-                w, h = pixmap.width(), pixmap.height()
-                side = min(w, h)
-                x = (w - side) // 2
-                y = (h - side) // 2
-                center_crop = pixmap.copy(x, y, side, side)
-
-                # 圖示大小
-                icon_size = 64
-                scaled = center_crop.scaled(
-                    icon_size, icon_size, Qt.KeepAspectRatio, Qt.SmoothTransformation
-                )
-
-                # 製作圓形遮罩
-                circular = QPixmap(icon_size, icon_size)
-                circular.fill(Qt.transparent)
-
-                painter = QPainter(circular)
-                painter.setRenderHint(QPainter.Antialiasing)
-                path = QPainterPath()
-                path.addEllipse(0, 0, icon_size, icon_size)
-                painter.setClipPath(path)
-                painter.drawPixmap(0, 0, scaled)
-                painter.end()
-
-                # 設定視窗圖示
-                self.setWindowIcon(QIcon(circular))
-            elif pixmap.loadFromData(image_data):  # 載入殺手圖片
-
-                if url:
-                    QPixmapCache.insert(url, pixmap)  # 存入 QPixmapCache
-
-                # 縮放圖片以適應標籤大小
-                scaled_pixmap = pixmap.scaled(
-                    self.image_label.size(),
-                    Qt.AspectRatioMode.KeepAspectRatio,
-                    Qt.TransformationMode.SmoothTransformation,
-                )
-
-                # radius 與 QLabel 的 border-radius 相同
-                self.image_label.setPixmap(self._rounded_pixmap(scaled_pixmap, radius=8))
-            elif url != "icon":
+        if not loaded:
+            if not url.lower().endswith(".ico"):  # .ico 載入失敗可不顯示錯誤
                 self.image_label.setText(Transl("載入失敗"))
-        elif url != "icon":
-            self.image_label.setText(Transl("載入失敗"))
+            reply.deleteLater()
+            return
+
+        if url.lower().endswith(".ico"):
+            # 裁出中心正方形
+            w, h = pixmap.width(), pixmap.height()
+            side = min(w, h)
+            x = (w - side) // 2
+            y = (h - side) // 2
+            cropped = pixmap.copy(x, y, side, side)
+
+            # 縮放至 icon 尺寸
+            icon_size = 64
+            scaled = cropped.scaled(
+                icon_size, icon_size, Qt.KeepAspectRatio, Qt.SmoothTransformation
+            )
+
+            # 製作圓形遮罩
+            circular = QPixmap(icon_size, icon_size)
+            circular.fill(Qt.transparent)
+
+            painter = QPainter(circular)
+            painter.setRenderHint(QPainter.Antialiasing)
+            path = QPainterPath()
+            path.addEllipse(0, 0, icon_size, icon_size)
+            painter.setClipPath(path)
+            painter.drawPixmap(0, 0, scaled)
+            painter.end()
+
+            # 設定視窗圖示
+            self.setWindowIcon(QIcon(circular))
+
+        else:
+            if url:
+                QPixmapCache.insert(url, pixmap)
+
+            # 縮放圖片以適應標籤大小
+            scaled = pixmap.scaled(
+                self.image_label.size(),
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+
+            # 顯示圓角圖片
+            self.image_label.setPixmap(self._rounded_pixmap(scaled, radius=8))
 
         reply.deleteLater()
 
@@ -1036,7 +1045,8 @@ class SlashcoSenseMainWindow(QMainWindow):
                     # 新的遊戲資訊 = 新遊戲開始
                     self.reset_mark = False
                     self.info_cache = message
-                self._reset_generators()
+
+                self._reset_generators()  # 有新的遊戲資訊時 = 開始 或 結束，都要重置
 
             # 重置狀態下禁止傳送日誌
             if self.reset_mark:
