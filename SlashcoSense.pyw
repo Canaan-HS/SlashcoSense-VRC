@@ -519,7 +519,9 @@ class SlashcoSenseMainWindow(QMainWindow):
 
         # 開發測試用 (我本人沒玩 Slashco，所以沒有日誌目錄)
         if not self.log_dir.exists():
-            self.log_dir = Path(__file__).parent / "TEST"
+            self.log_dir = (
+                Path(sys.executable if getattr(sys, "frozen", False) else __file__).parent / "TEST"
+            )
 
         # 初始化網路管理器（用於載入圖片）
         self.network_manager = QNetworkAccessManager()
