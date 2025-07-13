@@ -1,6 +1,6 @@
 # SlashcoSense-VRC 🎮⚡
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
+[![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/)
 [![OSC Protocol](https://img.shields.io/badge/OSC-1.1-brightgreen)](https://opensoundcontrol.stanford.edu/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -18,6 +18,8 @@
 3.配套MA預製件，透過 OSC 可在遊戲中檢視
 
 4.PCVR雙適配，PC顯示在螢幕，VR顯示在左手上，均可調節
+
+5.多語言支援 (繁中|簡中|英文|日文)，AI翻譯
 
 
 ### 預製件的安裝方法 (**原作者編譯，非本項目**)：
