@@ -1032,7 +1032,7 @@ class SlashcoSenseMainWindow(QMainWindow):
                 if items not in self.session_key:
                     self.items_label.setText(f"{Transl('生成物品')}: \n{items}")
 
-                self.session_key = " | ".join(
+                session_key = " | ".join(
                     [
                         f"{map_info}: {map_name}",
                         f"{slasher_info}: {slasher_name}",
@@ -1040,7 +1040,9 @@ class SlashcoSenseMainWindow(QMainWindow):
                     ]
                 )
 
-                self.log_message.emit(self.session_key)  # 傳送日誌
+                if session_key != self.session_key:
+                    self.session_key = session_key
+                    self.log_message.emit(self.session_key)  # 傳送日誌
 
         # 處理發電機 UI
         for generator_data in [
