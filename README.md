@@ -7,7 +7,7 @@
 透過讀取日誌，輸出 Slashco VR 遊戲執行中的資訊。更新後可能會失效。
 
 ### UI 預覽:
-![](https://github.com/user-attachments/assets/28d5bb26-caec-4399-9293-3f336076ad99)
+![](https://github.com/user-attachments/assets/e87060b8-f9d2-4c71-8481-f7880af2ad77)
 
 ### 功能：
 
