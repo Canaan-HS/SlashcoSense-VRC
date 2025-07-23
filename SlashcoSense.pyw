@@ -45,31 +45,9 @@ from Modules import (
     WINDOWS_ICON_URL,
     LOG_UPDATE_INTERVAL,
     VRC_LOG_DIR,
+    LOG_PATTERNS,
     UDP_CLIENT_AVAILABLE,
     DEFAULT_OSC_PORT,
-)
-
-
-# 編譯型別解析正則
-LOG_PATTERNS = (
-    (re.compile(r"(\d{4}\.\d{2}\.\d{2} \d{2}:\d{2}:\d{2}).*?Played Map:\s*([^,]+)"), "map"),
-    (re.compile(r"(\d{4}\.\d{2}\.\d{2} \d{2}:\d{2}:\d{2}).*?Slasher:\s*(\d+)"), "slasher"),
-    (
-        re.compile(
-            r"(\d{4}\.\d{2}\.\d{2} \d{2}:\d{2}:\d{2}).*?Selected Items:\s*(.+?)(?=,\s*\w+:|$)"
-        ),
-        "items",
-    ),
-    (
-        re.compile(
-            r"(\d{4}\.\d{2}\.\d{2} \d{2}:\d{2}:\d{2}).*?SC_(generator\d+) Progress check\. Last (\w+) value: (.*?), updated (\w+) value: (.*)"
-        ),
-        "generator",
-    ),
-    (
-        re.compile(r"(\d{4}\.\d{2}\.\d{2} \d{2}:\d{2}:\d{2}).*?Generators reset(?: again)?\."),
-        "reset",
-    ),
 )
 
 
