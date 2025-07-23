@@ -1,5 +1,5 @@
 from .bootstrap import *
-from .language import transl, translator
+from .language import transl, setLang, translator
 from .core import LogProcessor
 from .ui import LogDisplayWidget, OscSettingsWidget, GameStatusWidget, GeneratorStatusWidget
 from .utils import LOG_PATTERNS
