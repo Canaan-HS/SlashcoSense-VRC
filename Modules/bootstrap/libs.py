@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QGroupBox,
 )
-from PySide6.QtCore import Qt, QUrl, QSize, QTimer, Signal
+from PySide6.QtCore import Qt, QUrl, QSize, QTimer, Signal, QThread, QObject
 from PySide6.QtGui import QFont, QIcon, QCursor, QPixmap, QPainter, QPixmapCache, QPainterPath
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkRequest, QNetworkReply
 
