@@ -1,7 +1,7 @@
 from .libs import Path
 
 # 資源 URL (如果下載完整項目，可以改成本地讀取 Path(__file__).parent / "IMG")
-ASSETS = "https://github.com/Canaan-HS/SlashcoSense-VRC/raw/refs/heads/main/IMG"
+ASSETS = "https://github.com/Canaan-HS/SlashcoSense-VRC/raw/refs/heads/main/Modules/resources/img"
 
 DEFAULT_OSC_PORT = 9000  # 預設埠號
 LOG_UPDATE_INTERVAL = 500  # 日誌更新間隔 (毫秒)
