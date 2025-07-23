@@ -48,9 +48,6 @@ class SlashcoSenseMainWindow(QMainWindow):
         self._apply_dark_theme()
         self._setup_logic_thread()
 
-        # 延遲載入視窗圖示
-        QTimer.singleShot(100, self._load_window_icon)
-
     def _setup_ui(self):
         """設定使用者介面 - 建立並組合UI組件"""
         self.setWindowTitle("SlashCoSense")
@@ -77,6 +74,7 @@ class SlashcoSenseMainWindow(QMainWindow):
 
         # 連接UI組件的信號
         self.osc_settings_widget.settings_changed.connect(self._toggle_osc)
+        self.game_status_widget.window_icon_ready.connect(self.setWindowIcon)
 
     def _setup_logic_thread(self):
         """設定並啟動後端邏輯處理執行緒"""
@@ -98,23 +96,19 @@ class SlashcoSenseMainWindow(QMainWindow):
         self.log_processor.generator_updated.connect(self._on_generator_updated)
         self.log_processor.generators_reset.connect(self._on_generators_reset)
 
+        # 統一延遲啟動 IO 密集型任務
+        QTimer.singleShot(300, self._start_tasks)
+
+    def _start_tasks(self):
+        """啟動日誌監控和圖示載入"""
+
+        # 1. 啟動日誌監控執行緒
         self.logic_thread.start()
 
-    def _load_window_icon(self):
-        """非同步載入視窗圖示"""
-        self.icon_loader = QNetworkAccessManager()
-        self.icon_loader.finished.connect(self._on_icon_loaded)
-        self.icon_loader.get(QNetworkRequest(QUrl(WINDOWS_ICON_URL)))
-
-    def _on_icon_loaded(self, reply: QNetworkReply):
-        if reply.error() == QNetworkReply.NetworkError.NoError:
-            pixmap = QPixmap()
-            if pixmap.loadFromData(reply.readAll()):
-                w, h = pixmap.width(), pixmap.height()
-                side = min(w, h)
-                cropped = pixmap.copy((w - side) // 2, (h - side) // 2, side, side)
-                self.setWindowIcon(QIcon(cropped))
-        reply.deleteLater()
+        # 2. 請求視窗圖示 (由 GameStatusWidget 的 network_manager 處理)
+        request = QNetworkRequest(QUrl(WINDOWS_ICON_URL))
+        request.setAttribute(QNetworkRequest.Attribute.User, WINDOWS_ICON_URL)
+        self.game_status_widget.network_manager.get(request)
 
     def _apply_dark_theme(self):
         """應用暗黑主題"""
