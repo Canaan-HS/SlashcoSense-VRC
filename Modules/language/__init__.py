@@ -17,7 +17,7 @@ Locale = {
 }
 
 
-def Translator(lang=None):
+def translator(lang=None):
 
     Transl = {}
 
@@ -45,4 +45,4 @@ def Translator(lang=None):
 
 
 # 先使用自動檢測
-Transl = Translator()
+transl = translator()
