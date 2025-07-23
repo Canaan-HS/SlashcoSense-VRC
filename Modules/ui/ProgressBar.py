@@ -2,7 +2,7 @@ from ..bootstrap import QProgressBar
 from ..resources import GetProgressColor
 
 
-class ProgressBar(QProgressBar):
+class ProgressBarWidget(QProgressBar):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setMinimumHeight(25)
