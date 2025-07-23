@@ -35,7 +35,7 @@ from Modules import (
     QNetworkReply,
     # 以下為 自訂模塊數據
     transl,
-    ParseItems,
+    parse_items,
     ProgressBar,
     GAME_MAPS,
     SLASHERS,
@@ -557,7 +557,7 @@ class SlashcoSenseMainWindow(QMainWindow):
                 slasher_info = transl("殺手")
 
                 # 獲取物品資訊
-                items = ParseItems(items_data.group(2).strip())
+                items = parse_items(items_data.group(2).strip())
 
                 # 更新 UI
                 if map_name not in self.session_key:
