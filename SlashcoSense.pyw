@@ -35,7 +35,9 @@ from Modules import (
     QNetworkAccessManager,
     QNetworkRequest,
     QNetworkReply,
+    # 以下為 自訂模塊數據
     Transl,
+    GetProgressColor,
     GAME_MAPS,
     SLASHERS,
     ITEMS,
@@ -44,7 +46,6 @@ from Modules import (
     LOG_UPDATE_INTERVAL,
     VRC_LOG_DIR,
     UDP_CLIENT_AVAILABLE,
-    PROGRESS_COLORS,
     DEFAULT_OSC_PORT,
 )
 
@@ -103,14 +104,6 @@ def parse_items(items: str) -> str:
     return " / ".join(result)
 
 
-def get_progress_color(value: int) -> str:
-    """獲取進度條顏色"""
-    for (min_val, max_val), color in PROGRESS_COLORS.items():
-        if min_val <= value <= max_val:
-            return color
-    return "#2c2c2c"  # 預設
-
-
 class ProgressBar(QProgressBar):
     """進度條 - 減少樣式更新開銷"""
 
@@ -124,7 +117,7 @@ class ProgressBar(QProgressBar):
 
     def setValue(self, value: int):
         super().setValue(value)
-        new_color = get_progress_color(value)
+        new_color = GetProgressColor(value)
         if new_color != self._current_color:
             self._current_color = new_color
             self._apply_style(new_color)
