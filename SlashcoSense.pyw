@@ -37,11 +37,10 @@ from Modules import (
     QNetworkReply,
     # 以下為 自訂模塊數據
     Transl,
+    ParseItems,
     GetProgressColor,
     GAME_MAPS,
     SLASHERS,
-    ITEMS,
-    ITEMS_PATTERN,
     WINDOWS_ICON_URL,
     LOG_UPDATE_INTERVAL,
     VRC_LOG_DIR,
@@ -49,37 +48,6 @@ from Modules import (
     UDP_CLIENT_AVAILABLE,
     DEFAULT_OSC_PORT,
 )
-
-
-def parse_items(items: str) -> str:
-    """解析物品列表"""
-    if not items:
-        return ""
-
-    matches = list(ITEMS_PATTERN.finditer(items))
-    if not matches:
-        return items
-
-    result = []
-    last_end = 0
-
-    for match in matches:
-        start, end = match.span()
-
-        if start > last_end:
-            unmatched = items[last_end:start].strip()
-            if unmatched:
-                result.append(unmatched)
-
-        result.append(ITEMS[match.group()])
-        last_end = end
-
-    if last_end < len(items):
-        unmatched = items[last_end:].strip()
-        if unmatched:
-            result.append(unmatched)
-
-    return " / ".join(result)
 
 
 class ProgressBar(QProgressBar):
@@ -621,7 +589,7 @@ class SlashcoSenseMainWindow(QMainWindow):
                 slasher_info = Transl("殺手")
 
                 # 獲取物品資訊
-                items = parse_items(items_data.group(2).strip())
+                items = ParseItems(items_data.group(2).strip())
 
                 # 更新 UI
                 if map_name not in self.session_key:
