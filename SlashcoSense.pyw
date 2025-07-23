@@ -18,6 +18,7 @@ from Modules import (
     QNetworkRequest,
     # 以下為 自訂模塊數據
     transl,
+    setLang,
     parse_items,
     LogProcessor,
     GameStatusWidget,
