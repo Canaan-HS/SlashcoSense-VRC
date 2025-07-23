@@ -34,7 +34,7 @@ ITEMS_PATTERN = re.compile(
 )
 
 
-def ParseItems(items: str) -> str:
+def parse_items(items: str) -> str:
     """解析物品列表"""
     if not items:
         return ""
