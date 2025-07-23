@@ -15,11 +15,7 @@ from Modules import (
     QSize,
     QTimer,
     QThread,
-    QIcon,
-    QPixmap,
-    QNetworkAccessManager,
     QNetworkRequest,
-    QNetworkReply,
     # 以下為 自訂模塊數據
     transl,
     parse_items,
