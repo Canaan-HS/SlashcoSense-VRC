@@ -1,7 +1,6 @@
 # Original Author : https://github.com/arcxingye/SlasherSense-VRC/
 
 from Modules import (
-    re,
     sys,
     Path,
     datetime,
@@ -15,7 +14,6 @@ from Modules import (
     QVBoxLayout,
     QHBoxLayout,
     QLabel,
-    QProgressBar,
     QTextEdit,
     QCheckBox,
     QLineEdit,
@@ -36,9 +34,9 @@ from Modules import (
     QNetworkRequest,
     QNetworkReply,
     # 以下為 自訂模塊數據
-    Transl,
+    transl,
     ParseItems,
-    GetProgressColor,
+    ProgressBar,
     GAME_MAPS,
     SLASHERS,
     WINDOWS_ICON_URL,
@@ -48,36 +46,6 @@ from Modules import (
     UDP_CLIENT_AVAILABLE,
     DEFAULT_OSC_PORT,
 )
-
-
-class ProgressBar(QProgressBar):
-    """進度條 - 減少樣式更新開銷"""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setMinimumHeight(25)
-        self.setTextVisible(True)
-        self.setRange(0, 100)
-        self._current_color = "#555555"
-        self._apply_style(self._current_color)
-
-    def setValue(self, value: int):
-        super().setValue(value)
-        new_color = GetProgressColor(value)
-        if new_color != self._current_color:
-            self._current_color = new_color
-            self._apply_style(new_color)
-
-    def _apply_style(self, color: str):
-        self.setStyleSheet(
-            f"""
-            QProgressBar {{
-                border: 2px solid #3c3c3c; border-radius: 8px; background-color: #2c2c2c;
-                text-align: center; font-weight: bold; font-size: 12px; color: white;
-            }}
-            QProgressBar::chunk {{ background-color: {color}; border-radius: 6px; margin: 1px; }}
-        """
-        )
 
 
 class SlashcoSenseMainWindow(QMainWindow):
@@ -154,7 +122,7 @@ class SlashcoSenseMainWindow(QMainWindow):
         main_layout.setContentsMargins(15, 15, 15, 15)
 
         # 遊戲狀態群組
-        game_group = QGroupBox(Transl("遊戲狀態"))
+        game_group = QGroupBox(transl("遊戲狀態"))
         game_group.setFont(QFont("Microsoft YaHei", 12, QFont.Weight.Bold))
 
         # 修改為水平佈局，左邊是遊戲資訊，右邊是圖片
@@ -169,9 +137,9 @@ class SlashcoSenseMainWindow(QMainWindow):
         # 上方彈性空間 - 把內容推到中間
         game_layout.addStretch()
 
-        self.map_label = QLabel(f"{Transl('地圖')}: {Transl('未知')}")
-        self.slasher_label = QLabel(f"{Transl('殺手')}: {Transl('未知')}")
-        self.items_label = QLabel(Transl("生成物品: 無"))
+        self.map_label = QLabel(f"{transl('地圖')}: {transl('未知')}")
+        self.slasher_label = QLabel(f"{transl('殺手')}: {transl('未知')}")
+        self.items_label = QLabel(transl("生成物品: 無"))
 
         font = QFont("Microsoft YaHei", 11)
         for label in [self.map_label, self.slasher_label, self.items_label]:
@@ -197,7 +165,7 @@ class SlashcoSenseMainWindow(QMainWindow):
         self.image_label.setObjectName("imageDisplay")
         self.image_label.setFixedSize(200, 200)
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.image_label.setText(Transl("未知"))
+        self.image_label.setText(transl("未知"))
         self.image_label.setScaledContents(True)
 
         image_layout.addWidget(self.image_label)
@@ -207,7 +175,7 @@ class SlashcoSenseMainWindow(QMainWindow):
         game_main_layout.addWidget(image_widget, 0)  # 權重0，固定大小
 
         # 發電機狀態群組 - 直接建立，避免迴圈開銷
-        gen_group = QGroupBox(Transl("發電機狀態"))
+        gen_group = QGroupBox(transl("發電機狀態"))
         gen_group.setFont(QFont("Microsoft YaHei", 12, QFont.Weight.Bold))
         gen_layout = QVBoxLayout(gen_group)
         gen_layout.setSpacing(10)
@@ -215,7 +183,7 @@ class SlashcoSenseMainWindow(QMainWindow):
         # 發電機 1
         gen1_layout = QHBoxLayout()
         gen1_layout.setSpacing(10)
-        self.gen1_label = QLabel(f"{Transl('發電機')} 1")
+        self.gen1_label = QLabel(f"{transl('發電機')} 1")
         self.gen1_label.setMinimumWidth(20)
         self.gen1_label.setFont(QFont("Microsoft YaHei", 11, QFont.Weight.Bold))
         self.gen1_progress = ProgressBar()
@@ -231,7 +199,7 @@ class SlashcoSenseMainWindow(QMainWindow):
         # 發電機 2
         gen2_layout = QHBoxLayout()
         gen2_layout.setSpacing(10)
-        self.gen2_label = QLabel(f"{Transl('發電機')} 2")
+        self.gen2_label = QLabel(f"{transl('發電機')} 2")
         self.gen2_label.setMinimumWidth(20)
         self.gen2_label.setFont(QFont("Microsoft YaHei", 11, QFont.Weight.Bold))
         self.gen2_progress = ProgressBar()
@@ -252,22 +220,22 @@ class SlashcoSenseMainWindow(QMainWindow):
         gen_layout.addWidget(gen_widget1)
         gen_layout.addWidget(gen_widget2)
 
-        warning = QLabel(Transl("發電機監控僅限非房主有效"))
+        warning = QLabel(transl("發電機監控僅限非房主有效"))
         warning.setObjectName("warningText")
         warning.setAlignment(Qt.AlignmentFlag.AlignCenter)
         gen_layout.addWidget(warning)
 
         # OSC 設定群組
-        osc_group = QGroupBox(Transl("OSC 設定"))
+        osc_group = QGroupBox(transl("OSC 設定"))
         osc_group.setFont(QFont("Microsoft YaHei", 12, QFont.Weight.Bold))
         osc_layout = QHBoxLayout(osc_group)
         osc_layout.setSpacing(15)
 
-        self.osc_enabled_checkbox = QCheckBox(Transl("啟用 OSC"))
+        self.osc_enabled_checkbox = QCheckBox(transl("啟用 OSC"))
         self.osc_enabled_checkbox.toggled.connect(self._toggle_osc)
         self.osc_enabled_checkbox.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
-        self.osc_log_enabled_checkbox = QCheckBox(Transl("顯示 OSC 日誌"))
+        self.osc_log_enabled_checkbox = QCheckBox(transl("顯示 OSC 日誌"))
         self.osc_log_enabled_checkbox.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.osc_log_enabled_checkbox.setChecked(True)
 
@@ -277,11 +245,11 @@ class SlashcoSenseMainWindow(QMainWindow):
         osc_layout.addWidget(self.osc_enabled_checkbox)
         osc_layout.addWidget(self.osc_log_enabled_checkbox)
         osc_layout.addStretch()
-        osc_layout.addWidget(QLabel(Transl("埠號:")))
+        osc_layout.addWidget(QLabel(transl("埠號:")))
         osc_layout.addWidget(self.port_input)
 
         # 日誌顯示群組
-        log_group = QGroupBox(Transl("日誌監控"))
+        log_group = QGroupBox(transl("日誌監控"))
         log_group.setFont(QFont("Microsoft YaHei", 12, QFont.Weight.Bold))
         log_layout = QVBoxLayout(log_group)
 
@@ -373,7 +341,7 @@ class SlashcoSenseMainWindow(QMainWindow):
 
         if not loaded:
             if not url.lower().endswith(".ico"):  # .ico 載入失敗可不顯示錯誤
-                self.image_label.setText(Transl("載入失敗"))
+                self.image_label.setText(transl("載入失敗"))
             reply.deleteLater()
             return
 
@@ -460,7 +428,7 @@ class SlashcoSenseMainWindow(QMainWindow):
             )
         else:
             self.image_label.clear()
-            self.image_label.setText(Transl("未知"))
+            self.image_label.setText(transl("未知"))
             self.image_label.setStyleSheet("")
 
     def _toggle_osc(self, enabled: bool):
@@ -471,17 +439,17 @@ class SlashcoSenseMainWindow(QMainWindow):
                 if 1 <= port <= 65535 and UDP_CLIENT_AVAILABLE:
                     self.osc_client = udp_client.SimpleUDPClient("127.0.0.1", port)
                     self.osc_enabled = True
-                    self.log_message.emit(f"{Transl('OSC 已啟用')}（{Transl('埠')}：{port}）")
+                    self.log_message.emit(f"{transl('OSC 已啟用')}（{transl('埠')}：{port}）")
                 else:
-                    self.log_message.emit(Transl("錯誤：埠號無效或 OSC 不可用"))
+                    self.log_message.emit(transl("錯誤：埠號無效或 OSC 不可用"))
                     self.osc_enabled_checkbox.setChecked(False)
             except (ValueError, Exception):
-                self.log_message.emit(Transl("錯誤：OSC 啟用失敗"))
+                self.log_message.emit(transl("錯誤：OSC 啟用失敗"))
                 self.osc_enabled_checkbox.setChecked(False)
         else:
             self.osc_client = None
             self.osc_enabled = False
-            self.log_message.emit(Transl("OSC 已停用"))
+            self.log_message.emit(transl("OSC 已停用"))
 
     def _send_osc(self, param: str, value: Any) -> bool:
         """快速傳送OSC引數"""
@@ -517,7 +485,7 @@ class SlashcoSenseMainWindow(QMainWindow):
             if latest_file != self.current_log_file:
                 self.current_log_file = latest_file
                 self.file_position = 0
-                self.log_message.emit(f"{Transl('開始監控日誌')}: {latest_file.name}")
+                self.log_message.emit(f"{transl('開始監控日誌')}: {latest_file.name}")
 
             # 讀取新行
             if self.current_log_file.exists():
@@ -576,17 +544,17 @@ class SlashcoSenseMainWindow(QMainWindow):
                 # 獲取地圖資訊
                 map_val = map_data.group(2).strip()
                 map_name = GAME_MAPS.get(map_val, map_val)
-                map_info = Transl("地圖")
+                map_info = transl("地圖")
 
                 # 獲取殺手資訊
                 slasher_id = int(slasher_data.group(2))
                 slasher_data = SLASHERS.get(
                     slasher_id,
-                    {"name": f"{Transl('未知')}{Transl('殺手')}({slasher_id})", "icon": None},
+                    {"name": f"{transl('未知')}{transl('殺手')}({slasher_id})", "icon": None},
                 )
                 slasher_name = slasher_data["name"]
                 slasher_icon = slasher_data["icon"]
-                slasher_info = Transl("殺手")
+                slasher_info = transl("殺手")
 
                 # 獲取物品資訊
                 items = ParseItems(items_data.group(2).strip())
@@ -603,15 +571,15 @@ class SlashcoSenseMainWindow(QMainWindow):
                         self._send_osc("SlasherID", slasher_id)
                         and self.osc_log_enabled_checkbox.isChecked()
                     ):
-                        self.log_message.emit(f"{Transl('[OSC] 傳送 SlasherID')}: {slasher_id}")
+                        self.log_message.emit(f"{transl('[OSC] 傳送 SlasherID')}: {slasher_id}")
                 if items not in self.session_key:
-                    self.items_label.setText(f"{Transl('生成物品')}: \n{items}")
+                    self.items_label.setText(f"{transl('生成物品')}: \n{items}")
 
                 session_key = " | ".join(
                     [
                         f"{map_info}: {map_name}",
                         f"{slasher_info}: {slasher_name}",
-                        f"{Transl('物品')}: {items}",
+                        f"{transl('物品')}: {items}",
                     ]
                 )
 
@@ -671,14 +639,14 @@ class SlashcoSenseMainWindow(QMainWindow):
                         self._send_osc("GENERATOR1_FUEL", filled)
                         and self.osc_log_enabled_checkbox.isChecked()
                     ):
-                        self.log_message.emit(f"{Transl('[OSC] 傳送 GENERATOR1_FUEL')}: {filled}")
+                        self.log_message.emit(f"{transl('[OSC] 傳送 GENERATOR1_FUEL')}: {filled}")
                 elif gen_name == "generator2":
                     self.gen2_progress.setValue(progress)
                     if (
                         self._send_osc("GENERATOR2_FUEL", filled)
                         and self.osc_log_enabled_checkbox.isChecked()
                     ):
-                        self.log_message.emit(f"{Transl('[OSC] 傳送 GENERATOR2_FUEL')}: {filled}")
+                        self.log_message.emit(f"{transl('[OSC] 傳送 GENERATOR2_FUEL')}: {filled}")
 
             elif var_type == "HAS_BATTERY":
                 has_battery = new_value.lower() == "true"
@@ -692,7 +660,7 @@ class SlashcoSenseMainWindow(QMainWindow):
                         and self.osc_log_enabled_checkbox.isChecked()
                     ):
                         self.log_message.emit(
-                            f"{Transl('[OSC] 傳送 GENERATOR1_BATTERY')}: {battery_value}"
+                            f"{transl('[OSC] 傳送 GENERATOR1_BATTERY')}: {battery_value}"
                         )
                 elif gen_name == "generator2":
                     self.gen2_battery.setText(battery_text)
@@ -701,7 +669,7 @@ class SlashcoSenseMainWindow(QMainWindow):
                         and self.osc_log_enabled_checkbox.isChecked()
                     ):
                         self.log_message.emit(
-                            f"{Transl('[OSC] 傳送 GENERATOR2_BATTERY')}: {battery_value}"
+                            f"{transl('[OSC] 傳送 GENERATOR2_BATTERY')}: {battery_value}"
                         )
         except ValueError:
             pass
