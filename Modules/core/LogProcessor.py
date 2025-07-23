@@ -79,6 +79,7 @@ class LogProcessor(QObject):
                     log_timestamp = match.group(1)
                     cache_timestamp = self.process_cache.get(search_key, match).group(1)
 
+                    # 目前不一定要判斷時間戳, 基本上最終結果都是一樣的 (避免意外的寫法)
                     if log_timestamp >= cache_timestamp:
                         self.process_cache[search_key] = match
                 except (ValueError, IndexError):
