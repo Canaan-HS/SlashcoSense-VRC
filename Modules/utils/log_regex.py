@@ -16,7 +16,11 @@ LOG_PATTERNS = (
         "generator",
     ),
     (
-        re.compile(r"(\d{4}\.\d{2}\.\d{2} \d{2}:\d{2}:\d{2}).*?Generators reset(?: again)?\."),
+        re.compile(r"(\d{4}\.\d{2}\.\d{2} \d{2}:\d{2}:\d{2}).*?Generators reset\."),
+        "init",
+    ),
+    (
+        re.compile(r"(\d{4}\.\d{2}\.\d{2} \d{2}:\d{2}:\d{2}).*?Generators reset again\."),
         "reset",
     ),
 )
