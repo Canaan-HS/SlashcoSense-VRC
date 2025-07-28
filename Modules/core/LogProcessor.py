@@ -87,6 +87,12 @@ class LogProcessor(QObject):
 
     def _update_state(self):
         """根據快取解析資料並發射信號"""
+
+        init = self.process_cache.pop("init", None)
+        if init:
+            self.reset_mark = False
+            self.log_message_generated.emit("Generators Init")
+
         map_data = self.process_cache.pop("map", None)
         slasher_data = self.process_cache.pop("slasher", None)
         items_data = self.process_cache.pop("items", None)
@@ -95,8 +101,7 @@ class LogProcessor(QObject):
             timestamp = max(map_data.group(1), slasher_data.group(1), items_data.group(1))
 
             if timestamp > self.standard_timestamp:
-                self.reset_mark = False
-                self.standard_timestamp = timestamp
+                self.standard_timestamp = timestamp  # 更新標準時間, 通常跟 init 一樣
 
                 map_val = map_data.group(2).strip()
                 map_name = GAME_MAPS.get(map_val, map_val)
