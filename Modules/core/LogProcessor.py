@@ -91,6 +91,7 @@ class LogProcessor(QObject):
         init = self.process_cache.pop("init", None)
         if init:
             self.reset_mark = False
+            self.standard_timestamp = init.group(1)
             self.log_message_generated.emit("Generators Init")
 
         map_data = self.process_cache.pop("map", None)
@@ -100,9 +101,7 @@ class LogProcessor(QObject):
         if map_data and slasher_data and items_data:
             timestamp = max(map_data.group(1), slasher_data.group(1), items_data.group(1))
 
-            if timestamp > self.standard_timestamp:
-                self.standard_timestamp = timestamp  # 更新標準時間, 通常跟 init 一樣
-
+            if timestamp >= self.standard_timestamp:
                 map_val = map_data.group(2).strip()
                 map_name = GAME_MAPS.get(map_val, map_val)
 
